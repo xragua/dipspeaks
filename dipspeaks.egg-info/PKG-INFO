@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: dipspeaks
+Version: 0.1
+Summary: A python package to detect relevant peaks and dips in lightcurves.
+Author: LAEX
+Author-email: graciela.sanjurjo@ua.es
+Requires-Python: >=3.6
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: scipy
+Requires-Dist: matplotlib
+Requires-Dist: seaborn
+Requires-Dist: tensorflow
+Requires-Dist: scikit-learn
