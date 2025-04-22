@@ -171,7 +171,7 @@ def _clean_autoencoder(pd_to_clean, pd_base, show_plot_eval,show_plot=True):
     mse_test = np.mean(np.power(X_eval_transformed - reconstructed_test, 2), axis=1)
 
     # Identify outliers using reconstruction error
-    zscores, error_percentile = _outlier_probability(mse_train, mse_test, np.array(pd_to_clean.t), show_plot=show_plot, show_plot_eval=show_plot_eval)
+    zscores, error_percentile = _outlier_probability(mse_train, mse_test, np.array(pd_to_clean.t), show_plot=show_plot, show_plot_eval=False)
 
     # Append outlier probability and flags to the cleaned dataset
     pd_to_clean['zscores'] = zscores

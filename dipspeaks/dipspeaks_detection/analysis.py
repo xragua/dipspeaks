@@ -1,6 +1,10 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+from sklearn.mixture import GaussianMixture
+from sklearn.metrics import silhouette_score
+
 from .evaluation import(
     _modified_z_score,
     _outlier_probability,
@@ -178,3 +182,125 @@ def filter_dip_peak(
     print(f"The probability of this filtered dataset being real is {p:.4f}")
 
     return filt
+
+
+
+def gmm_dips_peaks(good_pd, log_scale=False):
+    """
+    Perform Gaussian Mixture Model (GMM) clustering on the provided data 
+    and compute cluster statistics.
+
+    Parameters:
+    - good_pd: DataFrame containing the data to cluster.
+    - log_scale: Whether to apply logarithm transformation to the data.
+
+    Returns:
+    - cluster_stats_df: DataFrame containing the statistics for each cluster.
+    - cluster_labels: Array of cluster labels for each data point.
+    """
+    
+    # Check if the input DataFrame is empty
+    if good_pd.empty:
+        print("The input DataFrame is empty.")
+        return pd.DataFrame(), np.array([])  # Return empty DataFrame and empty array
+
+    # Select columns for clustering
+    selected_columns = ['relprominence', 'duration']
+    data = good_pd[selected_columns]
+    data_plot = good_pd[selected_columns]
+
+    # Apply logarithmic transformation if specified
+    if log_scale:
+        if (data <= 0).any().any():  # Check for non-positive values
+            print("Log transformation cannot be applied due to non-positive values in the data.")
+            return pd.DataFrame(), np.array([])  # Return empty DataFrame and empty array
+        data = np.log(data)
+
+    # Normalize the data
+    normalized_data = (data - data.mean(axis=0)) / data.std(axis=0)
+
+    # Range of clusters to test
+    k_range = range(2, min(10, max(int(len(data) - 2), 2)))
+
+    # Silhouette Scores for GMM
+    silhouette_scores = []
+
+    for k in k_range:
+        try:
+            gmm = GaussianMixture(n_components=k, n_init=100, random_state=0, tol=1e-5)
+            gmm.fit(normalized_data)
+            cluster_labels = gmm.predict(normalized_data)
+            silhouette_avg = silhouette_score(normalized_data, cluster_labels)
+            silhouette_scores.append(silhouette_avg)
+        except:
+            continue  # Skip the iteration if clustering fails
+
+    # Check if silhouette scores are available
+    if not silhouette_scores:
+        print("No valid silhouette scores were calculated.")
+        return pd.DataFrame(), np.array([])  # Return empty DataFrame and empty array
+
+    # Determine optimal number of clusters
+    optimal_clusters = np.argmax(silhouette_scores) + 2  # Adjust for k_range starting from 2
+    
+    
+    #optimal_clusters =2
+    # Fit GMM with the optimal number of clusters
+    gmm = GaussianMixture(n_components=optimal_clusters, n_init=10, random_state=0)
+    gmm.fit(normalized_data)
+    cluster_labels = gmm.predict(normalized_data)
+
+    # Plotting the Silhouette scores and clustering results
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    # Subplot 1: Silhouette scores
+    axes[0].plot(k_range, silhouette_scores, marker='.', linestyle='-')
+    axes[0].set_xlabel('Number of Components (k)')
+    axes[0].set_ylabel('Silhouette Score')
+    axes[0].set_title('Silhouette Score', fontsize=10)
+
+    # Subplot 2: Data points with clusters
+    scatter = axes[1].scatter(data_plot['duration'], data_plot['prominence'], c=cluster_labels, marker=".", cmap='rainbow', alpha=0.7)
+    axes[1].set_xlabel('Duration')
+    axes[1].set_ylabel('Prominence')
+    axes[1].set_title('Clustering', fontsize=10)
+
+    if log_scale:
+        axes[1].set_xscale("log")
+        axes[1].set_yscale("log")
+
+    plt.colorbar(scatter, ax=axes[1], label='Cluster Label')
+
+    plt.tight_layout()
+    plt.show()
+
+    # Calculate statistics for each cluster
+    cluster_stats = []
+    optimal_clusters=2
+    if log_scale:
+        data = np.exp(data)  # Reverse the log transformation for correct statistics
+    for i in range(optimal_clusters):
+        cluster_data = data.loc[cluster_labels == i]
+        mean = cluster_data.mean(axis=0)
+        std = cluster_data.std(axis=0)
+        number = len(cluster_data)
+        cluster_stats.append({
+            'Cluster': i,
+            'Mean': mean,
+            'Standard Deviation': std,
+            'Number': number
+        })
+
+    # Create a DataFrame with the results
+    cluster_stats_df = pd.DataFrame(cluster_stats)
+
+    # Split mean and std columns into separate columns for better readability
+    mean_df = cluster_stats_df['Mean'].apply(pd.Series)
+    std_df = cluster_stats_df['Standard Deviation'].apply(pd.Series)
+    mean_df.columns = [f'Mean_{col}' for col in mean_df.columns]
+    std_df.columns = [f'Std_{col}' for col in std_df.columns]
+
+    # Concatenate mean and std columns with the cluster_stats_df
+    cluster_stats_df = pd.concat([cluster_stats_df[['Cluster', 'Number']], mean_df, std_df], axis=1)
+
+    return cluster_stats_df, cluster_labels
