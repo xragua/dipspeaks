@@ -8,6 +8,7 @@ dipspeaks.egg-info/dependency_links.txt
 dipspeaks.egg-info/requires.txt
 dipspeaks.egg-info/top_level.txt
 dipspeaks/dipspeaks_detection/__init__.py
+dipspeaks/dipspeaks_detection/analysis.py
 dipspeaks/dipspeaks_detection/autoencoder_model.py
 dipspeaks/dipspeaks_detection/detection.py
 dipspeaks/dipspeaks_detection/dipspeaks_detection.py

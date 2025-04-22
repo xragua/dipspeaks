@@ -4,52 +4,14 @@
 ##########################################################################################
 # Import Libraries
 # Standard libraries
-import os
-import glob
-import itertools
-import pickle
-import random
 import warnings
 
 # Data manipulation and analysis
 import numpy as np
-import pandas as pd
-import random
-# Plotting and visualization
-import matplotlib.pyplot as plt
-import seaborn as sns
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.pyplot import cm
 
-# SciPy for scientific computing
-from scipy import signal, stats as s
-from scipy.cluster.hierarchy import dendrogram, linkage
-from scipy.fftpack import fft
-from scipy.interpolate import CubicSpline, PchipInterpolator
-from scipy.optimize import curve_fit
-from scipy.signal import (
-    find_peaks, peak_widths, peak_prominences, savgol_filter, find_peaks_cwt
-)
-from scipy.spatial.distance import pdist, cdist
-from scipy.special import erf
-from scipy.stats import kde, mode, skewnorm, norm
-from scipy import signal
-
+from scipy.stats import norm
 # Scikit-learn for machine learning
-from sklearn import metrics
-from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans, Birch, SpectralClustering
-from sklearn.decomposition import PCA
-from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances
-from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, Normalizer, StandardScaler
-
-# TensorFlow and Keras for deep learning
-import tensorflow as tf
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.layers import Input, Dense
-from tensorflow.keras.models import Model
-from statsmodels.tsa.arima_process import ArmaProcess
+import matplotlib.pyplot as plt
 
 # Ignore warnings
 warnings.filterwarnings('ignore')
@@ -70,17 +32,43 @@ def _modified_z_score(errors_train, errors):
     z_scores = 0.6745 * (errors - median_error) / (mad_error + 1e-10)  # Adding a small value to prevent division by zero
     return z_scores
 
-    # Improved Outlier Probability Calculation
-def _outlier_probability(errors_train, errors, threshold=3.5):
-    '''
-    Calculate the outlier probability based on a modified Z-score.
-    Points with higher modified Z-scores are more likely to be outliers.
-    '''
-    z_scores = _modified_z_score(errors_train, errors)
-    # Use survival function for both tails (greater than abs(z))
-    outlier_probabilities = 2 * norm.sf(np.abs(z_scores))  # 2 times the survival function for two-tailed probability
-    outlier_flags = np.abs(z_scores) > threshold  # Flagging potential outliers
-    return outlier_probabilities, outlier_flags
+
+def _outlier_probability(
+        errors_train,
+        errors,
+        times,
+        show_plot,
+        show_plot_eval
+        ):
+    
+    # ---------- criterio Modified‑Z ----------
+    z_scores   = _modified_z_score(errors_train, errors)
+    z_scores_train = _modified_z_score(errors_train, errors_train)
+
+    sorted_train = np.sort(errors_train)
+
+    ranks = np.searchsorted(sorted_train, errors, side='right')
+    percentiles = ranks / errors_train.size
+
+    ranks_train= np.searchsorted(sorted_train, errors_train, side='right')
+    percentiles_train = ranks_train / errors_train.size
+
+    if (show_plot_eval & show_plot):
+        plt.figure()
+        plt.figure(figsize=(20, 3))
+        plt.title("Percentiles")
+
+        plt.plot(times, percentiles,".",markersize=1)
+
+        plt.hlines(y=0.99,xmin=min(times), xmax=(max(times)),color="black", label="99% percentile")
+        plt.hlines(y=0.75,xmin=min(times), xmax=(max(times)), color= "blue", label="75% percentile")
+        plt.hlines(y=0.50,xmin=min(times), xmax=(max(times)), color="green", label="50% percentile")
+
+        plt.legend()
+        plt.show()
+
+
+    return z_scores, percentiles
     
 def _real_probability(real_rate, sim_rate):
     """

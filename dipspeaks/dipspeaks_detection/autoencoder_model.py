@@ -81,7 +81,7 @@ from .evaluation import(
 
 
 
-def _clean_autoencoder(pd_to_clean, pd_base, show_plot=True):
+def _clean_autoencoder(pd_to_clean, pd_base, show_plot_eval,show_plot=True):
     '''
     Clean a dataset by detecting and flagging outliers using an autoencoder model.
 
@@ -104,43 +104,35 @@ def _clean_autoencoder(pd_to_clean, pd_base, show_plot=True):
     - mse_train (np.array): Mean squared reconstruction errors for the `pd_base` dataset.
     '''
     # Select relevant columns
-    selected_columns = ['density', 'prominence',  'duration','dispersion' ,'snr']
+    selected_columns = ['prominence', 'duration','density','snr']
     pd_to_clean_selection = pd_to_clean[selected_columns]
     pd_base_selection = pd_base[selected_columns]
 
     # Split data into training (baseline) and test (to_clean) sets
     X_train = pd_base_selection
-    X_test = pd_to_clean_selection
+    X_eval = pd_to_clean_selection
 
-    # Fit the pipeline on X_train and transform both X_train and X_test
+    # Fit the pipeline on X_train and transform both X_train and X_eval
     pipeline.fit(X_train)
-    X_train_transformed = pipeline.transform(X_train)
-    X_test_transformed = pipeline.transform(X_test)
+    X_train_transformed =X_train# pipeline.transform(X_train)
+    X_eval_transformed = X_eval#pipeline.transform(X_eval)
 
     # Define the autoencoder architecture
     input_dim = X_train_transformed.shape[1]
-    encoding_dim = 256
+    encoding_dim =256
 
     input_layer = Input(shape=(input_dim,))
-    encoded = Dense(encoding_dim, activation='elu')(input_layer)
-    encoded = Dense(encoding_dim // 2, activation='elu')(encoded)
-    encoded = Dense(encoding_dim // 4, activation='elu')(encoded)
-    encoded = Dense(encoding_dim // 8, activation='elu')(encoded)
-    encoded = Dense(encoding_dim // 16, activation='elu')(encoded)
-    encoded = Dense(encoding_dim // 32, activation='elu')(encoded)
-    encoded = Dense(encoding_dim // 64, activation='elu')(encoded)
-    encoded = Dense(encoding_dim // 128, activation='elu')(encoded)
-    encoded = Dense(encoding_dim // 256, activation='elu')(encoded)
-        
-    decoded = Dense(encoding_dim // 256, activation='elu')(encoded)
-    decoded = Dense(encoding_dim // 128, activation='elu')(encoded)
-    decoded = Dense(encoding_dim // 64, activation='elu')(encoded)
-    decoded = Dense(encoding_dim // 32, activation='elu')(encoded)
-    decoded = Dense(encoding_dim // 16, activation='elu')(encoded)
-    decoded = Dense(encoding_dim // 8, activation='elu')(decoded)
-    decoded = Dense(encoding_dim // 4, activation='elu')(decoded)
-    decoded = Dense(encoding_dim // 2, activation='elu')(decoded)
-    decoded = Dense(input_dim, activation='elu')(decoded)
+    x = Dense(encoding_dim,          activation='elu')( input_layer)
+    x = Dense(encoding_dim // 2,     activation='elu')(x)
+    x = Dense(encoding_dim // 4,     activation='elu')(x)
+    x = Dense(encoding_dim // 8,     activation='elu')(x)
+    latent = Dense(encoding_dim // 16, activation='elu', name='latent')(x)
+
+    # ----- Decoder (simétrico → dimensiones crecen) -----
+    x = Dense(encoding_dim // 8,  activation='elu')(latent)
+    x = Dense(encoding_dim // 4,  activation='elu')(x)
+    x = Dense(encoding_dim // 2,  activation='elu')(x)
+    decoded = Dense(input_dim,     activation='elu')(x)  # o 'sigmoid'/'linear'
 
     autoencoder = Model(input_layer, decoded)
 
@@ -172,18 +164,18 @@ def _clean_autoencoder(pd_to_clean, pd_base, show_plot=True):
 
     # Reconstruct data and compute reconstruction errors
     reconstructed_train = autoencoder.predict(X_train_transformed)
-    reconstructed_test = autoencoder.predict(X_test_transformed)
+    reconstructed_test = autoencoder.predict(X_eval_transformed)
 
     # Calculate Mean Squared Error (MSE) for reconstruction errors
     mse_train = np.mean(np.power(X_train_transformed - reconstructed_train, 2), axis=1)
-    mse_test = np.mean(np.power(X_test_transformed - reconstructed_test, 2), axis=1)
+    mse_test = np.mean(np.power(X_eval_transformed - reconstructed_test, 2), axis=1)
 
     # Identify outliers using reconstruction error
-    outlier_probabilities, outlier_flags = _outlier_probability(mse_train, mse_test)
+    zscores, error_percentile = _outlier_probability(mse_train, mse_test, np.array(pd_to_clean.t), show_plot=show_plot, show_plot_eval=show_plot_eval)
 
     # Append outlier probability and flags to the cleaned dataset
-    pd_to_clean['outlier_prob'] = outlier_probabilities
-    pd_to_clean['is_outlier'] = outlier_flags
+    pd_to_clean['zscores'] = zscores
+    pd_to_clean['error_percentile'] = error_percentile
     pd_to_clean = pd_to_clean.sort_values(by='t').reset_index(drop=True)
 
-    return pd_to_clean, mse_test, mse_train
+    return pd_to_clean, mse_test, mse_train 

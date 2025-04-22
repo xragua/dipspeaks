@@ -4,53 +4,15 @@
 ##########################################################################################
 # Import Libraries
 # Standard libraries
-import os
-import glob
-import itertools
-import pickle
-import random
 import warnings
 
 # Data manipulation and analysis
 import numpy as np
-import pandas as pd
 import random
 # Plotting and visualization
-import matplotlib.pyplot as plt
-import seaborn as sns
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.pyplot import cm
-
-# SciPy for scientific computing
-from scipy import signal, stats as s
-from scipy.cluster.hierarchy import dendrogram, linkage
-from scipy.fftpack import fft
-from scipy.interpolate import CubicSpline, PchipInterpolator
-from scipy.optimize import curve_fit
-from scipy.signal import (
-    find_peaks, peak_widths, peak_prominences, savgol_filter, find_peaks_cwt
-)
-from scipy.spatial.distance import pdist, cdist
-from scipy.special import erf
-from scipy.stats import kde, mode, skewnorm, norm
+import numpy as np
 from scipy import signal
-
-# Scikit-learn for machine learning
-from sklearn import metrics
-from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans, Birch, SpectralClustering
-from sklearn.decomposition import PCA
-from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances
-from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, Normalizer, StandardScaler
-
-# TensorFlow and Keras for deep learning
-import tensorflow as tf
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.layers import Input, Dense
-from tensorflow.keras.models import Model
-from statsmodels.tsa.arima_process import ArmaProcess
-
+import matplotlib.pyplot as plt
 # Ignore warnings
 warnings.filterwarnings('ignore')
 warnings.filterwarnings('ignore', category=RuntimeWarning)
@@ -59,72 +21,95 @@ warnings.filterwarnings('ignore', message='divide by zero encountered in divide'
 ##########################################################################################
 ##########################################################################################
 ##########################################################################################
-def _calculate_synthetic_data(t, c, sc, num_simulations):
+def _calculate_synthetic_data(t, c, sc, num_simulations, *, seed=None,
+                              cutoff_s=5000,
+                              butter_order=1):
     '''
-    Create synthetic data reflecting count errors in the main lightcurve.
+    Generate `num_simulations` synthetic light curves that keep only the
+    noise characteristics of the original curve (any real peaks/dips are
+    destroyed by shuffling the residuals).
 
-    Parameters:
-    - t: array-like, time data
-    - c: array-like, counts data
-    - sc: array-like, count errors
-    - num_simulations: int, number of simulations to generate
+    Uses reflected padding to prevent edge artifacts in the trend.
 
-    Returns:
-    - tsim, simc, ssimc: synthetic time series, counts, and errors
+    Values in the residuals with |zscore| > 3 are replaced with random values
+    drawn from |zscore| < 1.
     '''
-    # Detrend the original counts using the Savitzky-Golay filter
-    detrend = signal.savgol_filter(c, window_length=100, polyorder=8, mode='nearest')
-    det_c = (c - detrend)
+    rng = np.random.default_rng(seed)
 
-    # Identify and replace outliers based on Z-score thresholding
-    mean_value = np.mean(det_c)
-    std_dev = np.std(det_c)
-    z_threshold = 3
-    z_scores = (det_c - mean_value) / std_dev
-    outliers = np.abs(z_scores) > z_threshold
-    det_c = np.where(outliers, mean_value, det_c)
+    # --- Basic setup ---------------------------------------------------
+    t   = np.asarray(t, dtype=np.float64)
+    c   = np.asarray(c, dtype=np.float64)
+    sc  = np.asarray(sc, dtype=np.float64)
+    n   = c.size
 
-    n = len(det_c)
+    dt  = np.median(np.diff(t))
+    fs  = 1.0 / dt
+    fc  = 1.0 / cutoff_s
+    wn  = fc / (fs / 2)
+    b, a = signal.butter(butter_order, wn, btype='high')
 
-    # Pre-allocate arrays for synthetic data
-    simc = np.empty(n * num_simulations)
-    ssimc = np.empty(n * num_simulations)
-    tsimc = np.empty(n * num_simulations)
+    # --- Reflected padding to prevent boundary artifacts ---------------
+    pad_len = cutoff_s
+
+    c_padded = np.pad(c, pad_width=pad_len, mode='reflect')
+    resid_padded = signal.filtfilt(b, a, c_padded)
+    resid = resid_padded[pad_len:-pad_len]
+    
+    # --- Z-score filtering to remove outliers in residuals ------------
+    z_resid = (resid - np.mean(resid)) / (np.std(resid) + 1e-10)
+    outlier_mask = np.abs(z_resid) > 3
+    safe_mask    = np.abs(z_resid) < 1
+
+    if np.any(outlier_mask) and np.any(safe_mask):
+        safe_vals = resid[safe_mask]
+        replace_vals = rng.choice(safe_vals, size=outlier_mask.sum(), replace=True)
+        resid[outlier_mask] = replace_vals
+
+    # --- Normalize errors ----------------------------------------------
+    sc_prop = np.divide(sc, c, out=np.zeros_like(c), where=c != 0)
+    
+    # --- Generate simulations ------------------------------------------
+
+    n = len(t)
+    duration = t.max() - t.min()
+    total   = n * num_simulations
+
+    tsim   = np.zeros(total)
+    simc   = np.zeros(total)
+    ssimc  = np.zeros(total)
 
     mean_diff_t = np.mean(np.diff(t))
-    std_dev_counts = np.std(c)
-    std_dev_scounts = np.std(sc)
 
-    std_counts_proportion = (sc/c)
+    base_time = t[0]
+
     for k in range(num_simulations):
-        
-        perm_index = np.random.permutation(n)
-        start_index = k * n
-        end_index = start_index + n
+        perm = rng.permutation(n)
+        start = k * n
+        end   = start + n
 
-        mixed_diffs = np.concatenate([[mean_diff_t], np.diff(t)])
-        shuffled_diffs = mixed_diffs[perm_index]
+        # shuffle your diffs
+        mixed_diffs    = np.concatenate([[mean_diff_t], np.diff(t)])
+        shuffled_diffs = mixed_diffs[perm]
 
-        tsimc[start_index] = t[0] + k * (max(t) - min(t))
-        tsimc[start_index:end_index] = tsimc[start_index] + np.cumsum(shuffled_diffs)
+        # fill the k-th block
+        tsim[start]       = base_time + k * duration
+        tsim[start:end]   = tsim[start] + np.cumsum(shuffled_diffs)
+        simc[start:end]   = resid[perm] + np.mean(c)
+        ssimc[start:end]  = abs(sc_prop[perm] * simc[start:end])
 
-        # Simulate counts data using Gaussian noise
-        #gaussian_random_numbers = np.random.normal(loc=0, scale=std_dev_counts, size=n)
-        simcounts_ = random.choices(det_c, k=len(det_c))
-        simcounts = simcounts_-np.mean(simcounts_)+np.mean(c)
-        simc[start_index:end_index] = simcounts
+        # --- Z‑score filtering on ssimc to remove outliers ----------------
+        z_ssimc = (ssimc - np.mean(ssimc)) / (np.std(ssimc) + 1e-10)
+        outlier_mask = np.abs(z_ssimc) > 3
+        safe_mask    = np.abs(z_ssimc) < 1
+
+        if np.any(outlier_mask) and np.any(safe_mask):
+            # sample replacement values from the “safe” pool
+            safe_vals = ssimc[safe_mask]
+            replace_vals = rng.choice(safe_vals,
+                                    size=outlier_mask.sum(),
+                                    replace=True)
+            ssimc[outlier_mask] = replace_vals
         
-        # Simulate errors to resemble original errors
-        #sgaussian_random_numbers = np.random.normal(loc=0, scale=std_dev_scounts, size=n)
-        ssimc[start_index:end_index] = random.choices(std_counts_proportion, k=len(sc))*simcounts
-        
-    # Create a mask where both simc and ssimc are greater than 0
-    mask = (simc <= 0) | (ssimc <= 0)
     
-    # Assign the mean of the entire array to each element where the mask is True
-    simc[mask] = np.mean(simc)
-    ssimc[mask] = np.mean(ssimc)
-    
-    stb = tsimc
-
-    return stb, simc, ssimc
+    # --- Output flattened ---------------------------------------------
+    return tsim, simc, ssimc

@@ -28,3 +28,4 @@ from .dipspeaks_detection.evaluation import(
     _real_probability,
 )
 
+from .dipspeaks_detection.analysis import *

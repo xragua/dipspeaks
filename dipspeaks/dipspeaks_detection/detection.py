@@ -4,36 +4,24 @@
 ##########################################################################################
 # Import Libraries
 # Standard libraries
-import os
-import glob
-import itertools
-import pickle
-import random
+
 import warnings
 
 # Data manipulation and analysis
 import numpy as np
 import pandas as pd
-import random
+
 # Plotting and visualization
-import matplotlib.pyplot as plt
-import seaborn as sns
-from matplotlib.colors import LinearSegmentedColormap
+
 from matplotlib.pyplot import cm
 
 # SciPy for scientific computing
-from scipy import signal, stats as s
-from scipy.cluster.hierarchy import dendrogram, linkage
-from scipy.fftpack import fft
-from scipy.interpolate import CubicSpline, PchipInterpolator
-from scipy.optimize import curve_fit
+
+
 from scipy.signal import (
-    find_peaks, peak_widths, peak_prominences, savgol_filter, find_peaks_cwt
+    find_peaks, peak_widths
 )
-from scipy.spatial.distance import pdist, cdist
-from scipy.special import erf
-from scipy.stats import kde, mode, skewnorm, norm
-from scipy import signal
+
 
 # Scikit-learn for machine learning
 from sklearn import metrics
@@ -60,7 +48,7 @@ warnings.filterwarnings('ignore', message='divide by zero encountered in divide'
 ##########################################################################################
 ##########################################################################################
 
-def _detection(t, x, sy, maxlen, minlen):
+def _detection(t, x, sy):
     '''
     Find peaks in the signal and calculate their properties including SNR (uncertainty-based).
 
@@ -80,10 +68,10 @@ def _detection(t, x, sy, maxlen, minlen):
     pdleft_ips05, pdright_ips05 = [], []
     dispersions = []
 
+    minlen= np.mean(np.diff(t))*5
+
     # Invert the signal to find dips as peaks
     x_new = x - min(x)
-    
-    print(minlen,maxlen)
 
     # Set thresholds for prominence and width (adjust as needed)
     prominence_threshold = 1e-7
@@ -166,9 +154,7 @@ def _detection(t, x, sy, maxlen, minlen):
         # Define window for noise estimation (extend by at least 5 points)
         left_idx = max(0, left_boundary - max(int(right_boundary - left_boundary), 5))
         right_idx = min(len(x), right_boundary + max(int(right_boundary - left_boundary), 5))
-        # Exclude the peak region itself
-        noise_region = np.concatenate((x_new[left_idx:left_boundary],
-                                       x_new[right_boundary + 1:right_idx]))
+
         # Estimate noise level using uncertainties if available
         if len(sy) > 0:
             noise_level = np.mean(sy[left_idx:right_idx])
@@ -180,7 +166,7 @@ def _detection(t, x, sy, maxlen, minlen):
     dips['snr'] = peak_snr
 
     # Filter peaks based on duration thresholds
-    dips = dips[(dips.duration <= maxlen) & (dips.duration >= minlen)]
+    #dips = dips[(dips.duration <= maxlen) & (dips.duration >= minlen)]
     dips = dips.sort_values(by='t', ascending=False).reset_index(drop=True)
 
     return dips.reset_index(drop=True)

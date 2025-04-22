@@ -4,52 +4,21 @@
 ##########################################################################################
 # Import Libraries
 # Standard libraries
-import os
-import glob
-import itertools
-import pickle
-import random
 import warnings
 
 # Data manipulation and analysis
 import numpy as np
 import pandas as pd
-import random
+
 # Plotting and visualization
 import matplotlib.pyplot as plt
-import seaborn as sns
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.pyplot import cm
 
 # SciPy for scientific computing
-from scipy import signal, stats as s
-from scipy.cluster.hierarchy import dendrogram, linkage
-from scipy.fftpack import fft
-from scipy.interpolate import CubicSpline, PchipInterpolator
-from scipy.optimize import curve_fit
-from scipy.signal import (
-    find_peaks, peak_widths, peak_prominences, savgol_filter, find_peaks_cwt
-)
-from scipy.spatial.distance import pdist, cdist
-from scipy.special import erf
-from scipy.stats import kde, mode, skewnorm, norm
-from scipy import signal
 
 # Scikit-learn for machine learning
-from sklearn import metrics
-from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans, Birch, SpectralClustering
-from sklearn.decomposition import PCA
-from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances
-from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, Normalizer, StandardScaler
-
+from sklearn.preprocessing import MinMaxScaler, Normalizer
 # TensorFlow and Keras for deep learning
-import tensorflow as tf
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.layers import Input, Dense
-from tensorflow.keras.models import Model
-from statsmodels.tsa.arima_process import ArmaProcess
 
 # Ignore warnings
 warnings.filterwarnings('ignore')
@@ -92,9 +61,9 @@ from .evaluation import(
 #########################################################################################
 #########################################################################################
 
-def detect_dips_and_peaks(lc, snr=0.15 ,index_time=0, index_rate=1, index_error_rate=2, maxlen=10000, minlen=1, filename='lc',num_simulations=50, show_plot = True):
+def detect_dips_and_peaks(lc, snr=0.15 ,index_time=0, index_rate=1, index_error_rate=2, num_simulations=1, show_plot = True):
+
     num_simulations=num_simulations
-    print('collecting candidates')
     
     #lOAD LC............................................................................
     series = pd.read_csv(lc, sep=r'\s+', header=None, skiprows=21, comment='!')#lOAD LC
@@ -106,16 +75,27 @@ def detect_dips_and_peaks(lc, snr=0.15 ,index_time=0, index_rate=1, index_error_
     # Filter out invalid data
     mask = np.where((sc > 0) & (c > 0))[0]
     t, c, sc = t[mask], c[mask], sc[mask]
-    
-    # Create synthetic data............................................................................
-    #print('- create synthetic data')
-    #tsim_, simc_, sssimc_ =  _calculate_synthetic_data(t, c, sc,num_simulations)
+
+    print("Creating syntetic data")
+    tsim_, simc_, ssimc_ =  _calculate_synthetic_data(t, c, sc,num_simulations)
+    tsim = np.array(tsim_)
+    simc = np.array(simc_)
+    ssimc = np.array(ssimc_)
+
+    mask = np.where((simc > 0) & (ssimc > 0))[0]
+    tsim, simc, ssimc = tsim[mask], simc[mask], ssimc[mask]
+
+
+    duration_lc=max(t)-min(t)
+    duration_slc=max(tsim)-min(tsim)
+        
     print('- done!')
     results = {'dips': [], 'peaks': [], 'sim_dips': [], 'sim_peaks': []}
     
     snr_thresholds = [snr]
     
     #Rebin all data .........................................................................
+    print("Rebin light curve and syntetic lightcurve to the desired sn")
     for r in snr_thresholds:
     
         # Rebin data and noise
@@ -126,77 +106,89 @@ def detect_dips_and_peaks(lc, snr=0.15 ,index_time=0, index_rate=1, index_error_
             'sc': scb
         })
 
-        #tsim, simc, ssimc = rebin_snr(tsim_, simc_, sssimc_, r)
-        tsim, simc, ssimc =  _calculate_synthetic_data(lcreb.t, lcreb.c, lcreb.sc,num_simulations)
-        tsim = np.array(tsim)
-        simc = np.array(simc)
-        ssimc = np.array(ssimc)
-        
         cb = np.array(cb)
         tb = np.array(tb)
         scb = np.array(scb)
 
-    
-    #Collect candidates ......................................................................
-    if len(tb) >= 50:
-        print('- base calculator')
-        lc_dips = _base_calculator(cb)
-        lc_sdips = _base_calculator(simc)
-        
-                
-        lc_peaks = _base_calculator(-cb)
-        lc_speaks = _base_calculator(-simc)
-        print('- done!')
-        print('- detecting dips and peaks within light curve')
-        dips = _detection(tb, -lc_dips, scb, maxlen, minlen)
-        peaks = _detection(tb, -lc_peaks, scb, maxlen, minlen)
-        print('- done!')
-        
-        print('- detecting dips and peaks within synthetic data')
-        sdips = _detection(tsim, -lc_sdips, ssimc, maxlen, minlen)
-        speaks = _detection(tsim, -lc_speaks, ssimc, maxlen, minlen)
-        print('- done!')
-        
-        dips = dips.dropna().reset_index(drop=True)
-        #print('dips')
-        peaks = peaks.dropna().reset_index(drop=True)
-        #print('peaks')
-        sdips = sdips.dropna().reset_index(drop=True)
-        #print('simulated dips')
-        speaks = speaks.dropna().reset_index(drop=True)
-        #print('simulated peaks')
-        
-        # Store results in the dictionary
-        results['dips'].append(dips)
-        results['peaks'].append(peaks)
-        results['sim_dips'].append(sdips)
-        results['sim_peaks'].append(speaks)
-        
-        #print('candidates collected')
+        tsim, simc, ssimc = rebin_snr(tsim, simc, ssimc, r)
+
+        tsim = np.array(tsim)
+        simc = np.array(simc)
+        ssimc = np.array(ssimc)
+
+        plt.show()
+
+        print("Done!")
+        #Collect candidates ......................................................................
+        if len(tb) >= 50:
+
+            print('Calculate bases for dip/peak detection')
+            lc_dips = _base_calculator(cb)
+            lc_peaks = _base_calculator(-cb)
+
+            lc_speaks = _base_calculator(-simc)
+            lc_sdips = _base_calculator(simc)
+            print('- done!')
+
+            print('- detecting dips and peaks within light curve and syntetic lightcurve')
+            dips = _detection(tb, -lc_dips, scb)
+            peaks = _detection(tb, -lc_peaks, scb)
+
+            sdips = _detection(tsim, -lc_sdips, ssimc)
+            speaks = _detection(tsim, -lc_speaks, ssimc)
             
-        if show_plot:
             
-            plt.figure(figsize=(10, 3))
-            plt.plot(tb, lc_dips, 'r')
-            plt.plot(tb[dips.pos], lc_dips[dips.pos], '*k')
+            dips = dips.dropna().reset_index(drop=True)
+            peaks = peaks.dropna().reset_index(drop=True)
+            sdips = sdips.dropna().reset_index(drop=True)
+            speaks = speaks.dropna().reset_index(drop=True)
+            
+            results['dips'].append(dips)
+            results['peaks'].append(peaks)
+            results['sim_dips'].append(sdips)
+            results['sim_peaks'].append(speaks)
+            print('- done!')
+
+            
+            #print('candidates collected')
                 
-            plt.plot(tb, -lc_peaks, 'b')
-            plt.plot(tb[peaks.pos], -lc_peaks[peaks.pos], '.k')
-            plt.title('Raw result')
-            plt.show()
-    
-    if len(tb) < 50:
-        print('The light curve is too short')
+            if show_plot:
+        
+                plt.figure(figsize=(20, 3))   
+                plt.plot(tb,cb,"k",alpha=0.8) 
+                plt.plot(tb, -lc_peaks, 'b:', label="base_for_peaks")
+                plt.plot(tb[peaks.pos], -lc_peaks[peaks.pos], '.g', markersize=1)
+                plt.xlabel("Time (s)")
+                plt.ylabel("Rate")
+                plt.title('Raw result light curve')
+
+                plt.plot(tb, lc_dips, 'r:', label="base_for_dips")
+                plt.plot(tb[dips.pos], lc_dips[dips.pos], '*g', markersize=1)
+                plt.show()
+
+                plt.figure(figsize=(20, 3))
+                plt.plot(tsim,simc,"k",alpha=0.8) 
+                plt.plot(tsim, -lc_speaks, 'b:',label="simulated base for peaks")
+                plt.plot(tsim[speaks.pos], -lc_speaks[speaks.pos], '.g', markersize=1)
+                plt.xlabel("Time (s)")
+                plt.ylabel("Rate")
+                plt.title('Raw result simulated light curve')
+                
+                plt.plot(tsim, lc_sdips, 'r:',label="simulated base for dips")
+                plt.plot(tsim[sdips.pos], lc_sdips[sdips.pos], '*g', markersize=1)
+                plt.show()
+                    
+        if len(tb) < 50:
+            # \033[91m turns on bright red, \033[0m resets to default
+            print("\033[91mThe light curve is too short, please try a higher sn.\033[0m")
+
+            break
         
 #########################################################################################
 ###########################   STEP 2 : TRAINING AUTOENCODERS   ##########################
 #########################################################################################
-        
-    total_dmse_train=[]
-    total_dmse_test=[]
-    total_pmse_train=[]
-    total_pmse_test=[]
 
+    print("Train auto-encoders in syntetic data")    
     # Extract the dips, peaks, and simulated dips and peaks for this file
     dips_list = results.get('dips', [])
     peaks_list = results.get('peaks', [])
@@ -212,103 +204,94 @@ def detect_dips_and_peaks(lc, snr=0.15 ,index_time=0, index_rate=1, index_error_
 
     # Assign the lists of data directly
     dips = pd.concat(dips_list) if isinstance(dips_list, list) else dips_list
-    sdips = pd.concat(sim_dips_list) if isinstance(sim_dips_list, list) else sim_dips_list
     peaks = pd.concat(peaks_list) if isinstance(peaks_list, list) else peaks_list
+
+    sdips = pd.concat(sim_dips_list) if isinstance(sim_dips_list, list) else sim_dips_list
     speaks = pd.concat(sim_peaks_list) if isinstance(sim_peaks_list, list) else sim_peaks_list
-    
+
+    dips=dips.sort_values(by='t', ascending=False).reset_index(drop=True)
+    peaks=peaks.sort_values(by='t', ascending=False).reset_index(drop=True)
+
+    sdips=sdips.sort_values(by='t', ascending=False).reset_index(drop=True)
+    speaks=speaks.sort_values(by='t', ascending=False).reset_index(drop=True)
+
+
+
     #print('evaluating candidates')
     # Process dips if both dips and sdips contain data
+    print("DIPS----------------------------------------------------------------------------------------")
     if not dips.empty and not sdips.empty:
-        dips_, dmse_test, dmse_train = _clean_autoencoder(dips, sdips, show_plot=show_plot)
-        sdips_, sdmse_test, sdmse_train = _clean_autoencoder(sdips, sdips, show_plot=show_plot)
+        dips_, dmse_test, dmse_train = _clean_autoencoder(dips, sdips, show_plot=show_plot,show_plot_eval=True)
+        sdips_, sdmse_test, sdmse_train = _clean_autoencoder(sdips, sdips, show_plot=show_plot,show_plot_eval=False)
         dips_to_clean = pd.concat([dips_to_clean, dips_])
         sdips_to_clean = pd.concat([sdips_to_clean, sdips_])
 
+
+    print("PEAKS---------------------------------------------------------------------------------------")
     # Process peaks if both peaks and speaks contain data
     if not peaks.empty and not speaks.empty:
-        peaks_, pmse_test, pmse_train = _clean_autoencoder(peaks, speaks, show_plot=show_plot)
-        speaks_, sdmse_test, sdmse_train = _clean_autoencoder(speaks, speaks, show_plot=show_plot)
+        peaks_, pmse_test, pmse_train = _clean_autoencoder(peaks, speaks, show_plot=show_plot,show_plot_eval=True)
+        speaks_, spmse_test, spmse_train = _clean_autoencoder(speaks, speaks, show_plot=show_plot,show_plot_eval=False)
         peaks_to_clean = pd.concat([peaks_to_clean, peaks_])
         speaks_to_clean = pd.concat([speaks_to_clean, speaks_])
+
+    th_zscore=3
+    th_error_percentile=0.99
 
 
     ############# SAVE RESULTS
     # Identify potential peaks and dips with a high outlier probability (over 90%)
-    pospeaks = peaks_to_clean[(peaks_to_clean.is_outlier==True )] if not peaks_to_clean.empty else None
-    posdips = dips_to_clean[(dips_to_clean.is_outlier==True )] if not dips_to_clean.empty else None
+    pospeaks = peaks_to_clean[(peaks_to_clean.zscores>th_zscore) & (peaks_to_clean.error_percentile>th_error_percentile)] if not peaks_to_clean.empty else None
+    posdips = dips_to_clean[(dips_to_clean.zscores>th_zscore) & (dips_to_clean.error_percentile>th_error_percentile)] if not dips_to_clean.empty else None
     
-    spospeaks = speaks_to_clean[(speaks_to_clean.is_outlier==True )] if not speaks_to_clean.empty else None
-    sposdips = sdips_to_clean[(sdips_to_clean.is_outlier==True )] if not sdips_to_clean.empty else None
+    spospeaks = speaks_to_clean[(speaks_to_clean.zscores>th_zscore) & (speaks_to_clean.error_percentile>th_error_percentile)] if not speaks_to_clean.empty else None
+    sposdips = sdips_to_clean[(sdips_to_clean.zscores>th_zscore) & (sdips_to_clean.error_percentile>th_error_percentile)] if not sdips_to_clean.empty else None
     
     real_rate_peaks = (len(pospeaks) / len(peaks_to_clean)) if len(peaks_to_clean) > 0 else 0
     sim_rate_peaks  = (len(spospeaks) / len(speaks_to_clean))  if len(speaks_to_clean) > 0 else 0
 
     real_rate_dips  = (len(posdips) / len(dips_to_clean))    if len(dips_to_clean) > 0 else 0
     sim_rate_dips   = (len(sposdips) / len(sdips_to_clean))   if len(sdips_to_clean) > 0 else 0
-
-    
     
     ppeaks = _real_probability(real_rate_peaks, sim_rate_peaks)
     pdips = _real_probability(real_rate_dips, sim_rate_dips)
-    
+
 
     print("Simulation:")
-    print("Peaks per second:", np.round(len(spospeaks)/((max(t)-min(t))*num_simulations),4),
+    print("Peaks per second:", np.round(len(spospeaks)/duration_slc,4),
           "percentage of rejected peaks:", np.round((len(speaks_to_clean)-len(spospeaks))/len(speaks_to_clean),4))
           
-    print("Dips per second:", np.round(len(sposdips)/((max(t)-min(t))*num_simulations)),
+    print("Dips per second:", np.round(len(sposdips)/duration_slc,4),
           "percentage of rejected dips:", np.round((len(sdips_to_clean)-len(sposdips))/len(sdips_to_clean),4))
           
     print("Result:")
-    print("Peaks per second:", np.round(len(pospeaks)/(max(t)-min(t)),4),
+    print("Peaks per second:", np.round(len(pospeaks)/duration_lc,4),
           "percentage of rejected peaks:", np.round((len(peaks_to_clean)-len(pospeaks))/len(peaks_to_clean),4),
-          "probability of detected peaks:",ppeaks)
+          "probability of detected peaks:",np.round(ppeaks))
           
-    print("Dips per second:", np.round(len(posdips)/(max(t)-min(t)),4),
+    print("Dips per second:", np.round(len(posdips)/duration_lc,4),
           "percentage of rejected dips:", np.round((len(dips_to_clean)-len(posdips))/len(dips_to_clean),4),
-          "probability of detected dips:",pdips)
+          "probability of detected dips:",np.round(pdips,2))
           
 
 
     if show_plot:
         # Plot dips and peaks, marking positions with 90%+ probability
-        plt.figure(figsize=(10, 3))
+        plt.figure(figsize=(20, 3))
 
         # Plot dips with high probability if available
-        plt.plot(tb, cb, 'k', label='Dips')
+        plt.plot(tb, cb, 'k', label='Dips',alpha=0.2)
         if posdips is not None and not posdips.empty:
-            plt.plot(tb[posdips.pos], cb[posdips.pos], '*r', label='High-prob Dips')
+            plt.plot(posdips.t,cb[posdips.pos], ".b",label='High-prob Dips')
         if pospeaks is not None and not pospeaks.empty:
-            plt.plot(tb[pospeaks.pos], cb[pospeaks.pos], '.r', label='High-prob Peaks')
+            plt.plot(pospeaks.t,cb[pospeaks.pos],  "r.", label='High-prob Peaks')
 
         # Add legend and title
         plt.title('Outliers')
         plt.legend()
         plt.show()
 
-    return peaks_to_clean, dips_to_clean, lcreb
-    
+    return peaks_to_clean, dips_to_clean, lcreb, speaks_to_clean, sdips_to_clean
 
-
-#########################################################################################
-###########################   COINCIDENCES BETWEEN   ##########################
-#########################################################################################
-def calculate_overlap_gtp(start1, end1, start2, end2):
-    
-    start1 = np.array(start1)
-    end1 = np.array(end1)
-    start2 = np.array(start2)
-    end2 = np.array(end2)
-
-    max_start = np.maximum(start1[:, np.newaxis], start2)
-    min_end = np.minimum(end1[:, np.newaxis], end2)
-
-    overlap = np.maximum(0, min_end - max_start)
-    hoverlap = overlap / (end1[:, np.newaxis] - start1[:, np.newaxis])
-    loverlap = overlap / (end2 - start2)
-
-    high_indices, low_indices = np.where(overlap > 0)
-
-    return overlap[high_indices, low_indices], high_indices, low_indices, hoverlap[high_indices, low_indices], loverlap[high_indices, low_indices]
 
 
