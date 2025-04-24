@@ -16,6 +16,7 @@ setup(
     license_files=("LICENSE",),          # <- note the *plural* key
 
     install_requires=[
+     "ipython>=8",
         "numpy",
         "pandas",
         "scipy",
