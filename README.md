@@ -50,6 +50,6 @@ Contributions are welcome! Please check the [CONTRIBUTING FILE](https://github.c
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/xragua/xraybinaryorbit/blob/main/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/xragua/dipspeaks/blob/main/LICENSE) file for details.
 
 ---
