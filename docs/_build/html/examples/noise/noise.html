@@ -1,0 +1,552 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Behaviour of dipspeaks package in a Fake Light Curve &mdash; dipspeaks 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="dipspeaks – Key Public Functions" href="../../api/function_reference.html" />
+    <link rel="prev" title="Cen X-3 Analysis" href="../cenx3/cenx3.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            dipspeaks
+              <img src="../../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Rationale:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/rationale.html">How dipspeaks builds its synthetic (“noise-only”) light curves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/rationale.html#how-the-auto-encoder-scores-dips-peaks">How the auto-encoder scores dips &amp; peaks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/rationale.html#probability-based-on-an-excess">Probability based on an excess</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Notebooks:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../cenx3/cenx3.html">Cen X-3 Analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Behaviour of dipspeaks package in a Fake Light Curve</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#In-the-next-cell-we-will-create-a-fake-light-curve-and-save-it-within-the-currect-directory">In the next cell we will create a fake light curve and save it within the currect directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#In-the-next-four-cells-we-will-run-our-detection-algorithm-for-different-sn:-0.5,-0.25,-0.1-and-0.05.">In the next four cells we will run our detection algorithm for different sn: 0.5, 0.25, 0.1 and 0.05.</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Functions:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/function_reference.html">dipspeaks – Key Public Functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">dipspeaks</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Behaviour of dipspeaks package in a Fake Light Curve</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/examples/noise/noise.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Behaviour-of-dipspeaks-package-in-a-Fake-Light-Curve">
+<h1>Behaviour of dipspeaks package in a Fake Light Curve<a class="headerlink" href="#Behaviour-of-dipspeaks-package-in-a-Fake-Light-Curve" title="Link to this heading">¶</a></h1>
+<p>In this notebook, we will generate a synthetic light curve made up of purely random data. Any dips or peaks found in this curve should be attributable to noise rather than genuine astrophysical signals.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#LOAD PACKAGES</span>
+<span class="kn">import</span> <span class="nn">dipspeaks</span>
+<span class="kn">from</span> <span class="nn">dipspeaks</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+
+If you need help, contact graciela.sanjurjo@ua.es.
+
+</pre></div></div>
+</div>
+<section id="In-the-next-cell-we-will-create-a-fake-light-curve-and-save-it-within-the-currect-directory">
+<h2>In the next cell we will create a fake light curve and save it within the currect directory<a class="headerlink" href="#In-the-next-cell-we-will-create-a-fake-light-curve-and-save-it-within-the-currect-directory" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">20000</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+    <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span>  <span class="c1"># a simple numeric sequence for the time column</span>
+    <span class="s2">&quot;counts&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)),</span>  <span class="c1"># random integers between 0 and 99</span>
+    <span class="s2">&quot;srate&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">)</span><span class="o">*</span><span class="mf">0.10</span> <span class="c1"># random integers between 0 and 99</span>
+<span class="p">})</span>
+
+<span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;test_lc&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="In-the-next-four-cells-we-will-run-our-detection-algorithm-for-different-sn:-0.5,-0.25,-0.1-and-0.05.">
+<h2>In the next four cells we will run our detection algorithm for different sn: 0.5, 0.25, 0.1 and 0.05.<a class="headerlink" href="#In-the-next-four-cells-we-will-run-our-detection-algorithm-for-different-sn:-0.5,-0.25,-0.1-and-0.05." title="Link to this heading">¶</a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">=</span><span class="s2">&quot;./test_lc&quot;</span>
+<span class="n">tpeaks_to_clean</span><span class="p">,</span> <span class="n">tdips_to_clean</span><span class="p">,</span> <span class="n">tlcreb</span><span class="p">,</span><span class="n">_</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">detect_dips_and_peaks</span><span class="p">(</span><span class="n">lc</span><span class="p">,</span> <span class="n">snr</span><span class="o">=</span><span class="mf">0.5</span> <span class="p">,</span><span class="n">index_time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">index_rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">index_error_rate</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">show_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Creating syntetic data
+- done!
+Rebin light curve and syntetic lightcurve to the desired sn
+Done!
+Calculate bases for dip/peak detection
+- done!
+- detecting dips and peaks within light curve and syntetic lightcurve
+- done!
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_5_1.png" src="../../_images/examples_noise_noise_5_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_5_2.png" src="../../_images/examples_noise_noise_5_2.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Train auto-encoders in syntetic data
+DIPS----------------------------------------------------------------------------------------
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_5_4.png" src="../../_images/examples_noise_noise_5_4.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">35/35</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 1ms/step
+<span class="ansi-bold">35/35</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 494us/step
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_5_6.png" src="../../_images/examples_noise_noise_5_6.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">35/35</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 1ms/step
+<span class="ansi-bold">35/35</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 482us/step
+PEAKS---------------------------------------------------------------------------------------
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_5_8.png" src="../../_images/examples_noise_noise_5_8.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">35/35</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step
+<span class="ansi-bold">35/35</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 557us/step
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_5_10.png" src="../../_images/examples_noise_noise_5_10.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">35/35</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 1ms/step
+<span class="ansi-bold">35/35</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 475us/step
+Simulation:
+Peaks per second: 0.0006 percentage of rejected peaks: 0.99
+Dips per second: 0.0006 percentage of rejected dips: 0.9892
+Result:
+Peaks per second: 0.001 percentage of rejected peaks: 0.9819 probability of detected peaks: 0.0
+Dips per second: 0.0008 percentage of rejected dips: 0.9864 probability of detected dips: 0.2
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_5_12.png" src="../../_images/examples_noise_noise_5_12.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tpeaks_to_clean</span><span class="p">,</span> <span class="n">tdips_to_clean</span><span class="p">,</span> <span class="n">tlcreb</span><span class="p">,</span><span class="n">_</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">detect_dips_and_peaks</span><span class="p">(</span><span class="n">lc</span><span class="p">,</span> <span class="n">snr</span><span class="o">=</span><span class="mf">0.25</span> <span class="p">,</span><span class="n">index_time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">index_rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">index_error_rate</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="n">show_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Creating syntetic data
+- done!
+Rebin light curve and syntetic lightcurve to the desired sn
+Done!
+Calculate bases for dip/peak detection
+- done!
+- detecting dips and peaks within light curve and syntetic lightcurve
+- done!
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_6_1.png" src="../../_images/examples_noise_noise_6_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_6_2.png" src="../../_images/examples_noise_noise_6_2.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Train auto-encoders in syntetic data
+DIPS----------------------------------------------------------------------------------------
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_6_4.png" src="../../_images/examples_noise_noise_6_4.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">31/31</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 490us/step
+<span class="ansi-bold">31/31</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 1ms/step
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_6_6.png" src="../../_images/examples_noise_noise_6_6.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">31/31</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 488us/step
+<span class="ansi-bold">31/31</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 458us/step
+PEAKS---------------------------------------------------------------------------------------
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_6_8.png" src="../../_images/examples_noise_noise_6_8.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">32/32</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 1ms/step
+<span class="ansi-bold">31/31</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 494us/step
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_6_10.png" src="../../_images/examples_noise_noise_6_10.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">32/32</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 1ms/step
+<span class="ansi-bold">32/32</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 495us/step
+Simulation:
+Peaks per second: 0.0006 percentage of rejected peaks: 0.989
+Dips per second: 0.0005 percentage of rejected dips: 0.9899
+Result:
+Peaks per second: 0.0009 percentage of rejected peaks: 0.9825 probability of detected peaks: 0.0
+Dips per second: 0.0005 percentage of rejected dips: 0.9896 probability of detected dips: 0.03
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_6_12.png" src="../../_images/examples_noise_noise_6_12.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tpeaks_to_clean</span><span class="p">,</span> <span class="n">tdips_to_clean</span><span class="p">,</span> <span class="n">tlcreb</span><span class="p">,</span><span class="n">_</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">detect_dips_and_peaks</span><span class="p">(</span><span class="n">lc</span><span class="p">,</span> <span class="n">snr</span><span class="o">=</span><span class="mf">0.1</span> <span class="p">,</span><span class="n">index_time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">index_rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">index_error_rate</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="n">show_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Creating syntetic data
+- done!
+Rebin light curve and syntetic lightcurve to the desired sn
+Done!
+Calculate bases for dip/peak detection
+- done!
+- detecting dips and peaks within light curve and syntetic lightcurve
+- done!
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_7_1.png" src="../../_images/examples_noise_noise_7_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_7_2.png" src="../../_images/examples_noise_noise_7_2.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Train auto-encoders in syntetic data
+DIPS----------------------------------------------------------------------------------------
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_7_4.png" src="../../_images/examples_noise_noise_7_4.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">17/17</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step
+<span class="ansi-bold">18/18</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 633us/step
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_7_6.png" src="../../_images/examples_noise_noise_7_6.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">17/17</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step
+<span class="ansi-bold">17/17</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 639us/step
+PEAKS---------------------------------------------------------------------------------------
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_7_8.png" src="../../_images/examples_noise_noise_7_8.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">16/16</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step
+<span class="ansi-bold">17/17</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 639us/step
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_7_10.png" src="../../_images/examples_noise_noise_7_10.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">16/16</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step
+<span class="ansi-bold">16/16</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 711us/step
+Simulation:
+Peaks per second: 0.0003 percentage of rejected peaks: 0.9883
+Dips per second: 0.0003 percentage of rejected dips: 0.9884
+Result:
+Peaks per second: 0.0006 percentage of rejected peaks: 0.9792 probability of detected peaks: 0.0
+Dips per second: 0.0002 percentage of rejected dips: 0.9927 probability of detected dips: 0.0
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_noise_noise_7_12.png" src="../../_images/examples_noise_noise_7_12.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../cenx3/cenx3.html" class="btn btn-neutral float-left" title="Cen X-3 Analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../api/function_reference.html" class="btn btn-neutral float-right" title="dipspeaks – Key Public Functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

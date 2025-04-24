@@ -1,0 +1,692 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cen X-3 Analysis &mdash; dipspeaks 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Behaviour of dipspeaks package in a Fake Light Curve" href="../noise/noise.html" />
+    <link rel="prev" title="How dipspeaks builds its synthetic (“noise-only”) light curves" href="../../api/rationale.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            dipspeaks
+              <img src="../../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Rationale:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/rationale.html">How dipspeaks builds its synthetic (“noise-only”) light curves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/rationale.html#how-the-auto-encoder-scores-dips-peaks">How the auto-encoder scores dips &amp; peaks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/rationale.html#probability-based-on-an-excess">Probability based on an excess</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Notebooks:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Cen X-3 Analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Detection">Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Workflow:">Workflow:</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#We-will-obtain:">We will obtain:</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Filter">Filter</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#ANALYSIS">ANALYSIS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#EVERYTHING-TOGETHER">EVERYTHING TOGETHER</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../noise/noise.html">Behaviour of dipspeaks package in a Fake Light Curve</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Functions:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/function_reference.html">dipspeaks – Key Public Functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">dipspeaks</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Cen X-3 Analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/examples/cenx3/cenx3.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Cen-X-3-Analysis">
+<h1>Cen X-3 Analysis<a class="headerlink" href="#Cen-X-3-Analysis" title="Link to this heading">¶</a></h1>
+<p>In this notebook we’ll analyze an XMM-Newton lightcurve of Cen X-3 taking during orbital phases ≈ 0.37 – 0.82. We’ll use the <strong>dipspeaks</strong> package to detect and evaluate high-confidence peaks and dips, then perform a detailed comparison.</p>
+<p>To get the most out of our tools, we’ll split the lightcurve into two energy bands:</p>
+<ul class="simple">
+<li><p><strong>Low energy</strong>: 0.2 – 3 keV</p></li>
+<li><p><strong>High energy</strong>: 3 – 10 keV</p></li>
+</ul>
+<p>We’ll process each band separately and then compare the resulting features.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#LOAD PACKAGES</span>
+<span class="kn">import</span> <span class="nn">dipspeaks</span>
+<span class="kn">from</span> <span class="nn">dipspeaks</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+
+If you need help, contact graciela.sanjurjo@ua.es.
+
+</pre></div></div>
+</div>
+<section id="Detection">
+<h2>Detection<a class="headerlink" href="#Detection" title="Link to this heading">¶</a></h2>
+<p>The main function is <strong>detect_dips_and_peaks</strong>. This function will detect and evaluate significant peaks and dips (features) that appear in alightcurve.</p>
+<p>We should provide the path to the light curve, a signal to noise in which we desire to rebin it, the indexes of the columns in case is an ascci file and weather we want or not see the plots as the process runs.</p>
+<section id="Workflow:">
+<h3>Workflow:<a class="headerlink" href="#Workflow:" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Detect all peaks and dips</p></li>
+<li><p>Create synthetic data with the same statistical properties as the original ligt curve</p></li>
+<li><p>Train autoencoders on syntetich data to get out model to recognize the patters that appear in syntetic data.</p></li>
+<li><p>Evaluate both the features detected in the light curve and in the syntetic ligh curve</p></li>
+</ul>
+<p>After the evaluation, if in the dataset a feature is flagged as an outlier (controlled via zscore and percentile_error with respect to the syntetic dataset) we will consider it to be a high probability feature. The rate (features/s) of both the synthetic dataset and dataset after the filtering will be compared to evaluate the reliability of the result.</p>
+<section id="We-will-obtain:">
+<h4>We will obtain:<a class="headerlink" href="#We-will-obtain:" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>raw detected peaks data frame</p></li>
+<li><p>raw detected dips data frame</p></li>
+<li><p>Rebined lightcurve</p></li>
+<li><p>raw detected peaks on synthetic data</p></li>
+<li><p>raw detected dips on synthetic data.</p></li>
+</ul>
+<p>If show_plot=True, as the process goes by some plots will be displayed, and finally, the higher probability peaks and dips will be shown.</p>
+<p>For flexibity, the raw complete data will be probided, so before making the analysis, we should first filter it.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">high_lc</span><span class="o">=</span><span class="s2">&quot;./high&quot;</span>
+<span class="n">low_lc</span><span class="o">=</span><span class="s2">&quot;./low&quot;</span>
+
+<span class="n">high_peaks_to_clean</span><span class="p">,</span> <span class="n">high_dips_to_clean</span><span class="p">,</span> <span class="n">high_lcreb</span><span class="p">,</span> <span class="n">high_speaks_to_clean</span><span class="p">,</span> <span class="n">high_sdips_to_clean</span> <span class="o">=</span> <span class="n">detect_dips_and_peaks</span><span class="p">(</span><span class="n">high_lc</span><span class="p">,</span> <span class="n">snr</span><span class="o">=</span><span class="mf">0.1</span> <span class="p">,</span><span class="n">index_time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">index_rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">index_error_rate</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_simulations</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">show_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">low_peaks_to_clean</span><span class="p">,</span> <span class="n">low_dips_to_clean</span><span class="p">,</span> <span class="n">low_lcreb</span><span class="p">,</span> <span class="n">low_speaks_to_clean</span><span class="p">,</span> <span class="n">low_sdips_to_clean</span> <span class="o">=</span> <span class="n">detect_dips_and_peaks</span><span class="p">(</span><span class="n">low_lc</span><span class="p">,</span> <span class="n">snr</span><span class="o">=</span><span class="mf">0.1</span> <span class="p">,</span><span class="n">index_time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">index_rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">index_error_rate</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_simulations</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">show_plot</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Creating syntetic data
+- done!
+Rebin light curve and syntetic lightcurve to the desired sn
+Done!
+Calculate bases for dip/peak detection
+- done!
+- detecting dips and peaks within light curve and syntetic lightcurve
+- done!
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_3_1.png" src="../../_images/examples_cenx3_cenx3_3_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_3_2.png" src="../../_images/examples_cenx3_cenx3_3_2.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Train auto-encoders in syntetic data
+DIPS----------------------------------------------------------------------------------------
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_3_4.png" src="../../_images/examples_cenx3_cenx3_3_4.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">79/79</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 692us/step
+<span class="ansi-bold">62/62</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 408us/step
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_3_6.png" src="../../_images/examples_cenx3_cenx3_3_6.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">79/79</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 787us/step
+<span class="ansi-bold">79/79</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 418us/step
+PEAKS---------------------------------------------------------------------------------------
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_3_8.png" src="../../_images/examples_cenx3_cenx3_3_8.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">79/79</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 1ms/step
+<span class="ansi-bold">68/68</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 729us/step
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_3_10.png" src="../../_images/examples_cenx3_cenx3_3_10.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-bold">79/79</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 685us/step
+<span class="ansi-bold">79/79</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 346us/step
+Simulation:
+Peaks per second: 0.0003 percentage of rejected peaks: 0.9896
+Dips per second: 0.0003 percentage of rejected dips: 0.9897
+Result:
+Peaks per second: 0.0032 percentage of rejected peaks: 0.8821 probability of detected peaks: 1.0
+Dips per second: 0.0023 percentage of rejected dips: 0.905 probability of detected dips: 0.89
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_3_12.png" src="../../_images/examples_cenx3_cenx3_3_12.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Creating syntetic data
+- done!
+Rebin light curve and syntetic lightcurve to the desired sn
+Done!
+Calculate bases for dip/peak detection
+- done!
+- detecting dips and peaks within light curve and syntetic lightcurve
+- done!
+Train auto-encoders in syntetic data
+DIPS----------------------------------------------------------------------------------------
+<span class="ansi-bold">78/78</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 637us/step
+<span class="ansi-bold">66/66</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 363us/step
+<span class="ansi-bold">78/78</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 621us/step
+<span class="ansi-bold">78/78</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 354us/step
+PEAKS---------------------------------------------------------------------------------------
+<span class="ansi-bold">78/78</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 642us/step
+<span class="ansi-bold">71/71</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 363us/step
+<span class="ansi-bold">78/78</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 605us/step
+<span class="ansi-bold">78/78</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 356us/step
+Simulation:
+Peaks per second: 0.0003 percentage of rejected peaks: 0.9899
+Dips per second: 0.0003 percentage of rejected dips: 0.99
+Result:
+Peaks per second: 0.0028 percentage of rejected peaks: 0.9019 probability of detected peaks: 1.0
+Dips per second: 0.0021 percentage of rejected dips: 0.9216 probability of detected dips: 0.87
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="Filter">
+<h3>Filter<a class="headerlink" href="#Filter" title="Link to this heading">¶</a></h3>
+<p>To perform the analysis we should filter our peaks and dips, to that end, we will use the function <strong>filter_dip_peak</strong> and if needed, mofify the error_percentile_threshold and zscore_threshold (default is percetile &gt;= 99% and zscore &gt;= 4).</p>
+<p>The same filters are applied to the syntetic dataset. The rates of detection of the real and synthetic data will be compared to provide a probability of the filtered set.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">high_peaks</span> <span class="o">=</span> <span class="n">filter_dip_peak</span><span class="p">(</span><span class="n">high_peaks_to_clean</span><span class="p">,</span>
+                       <span class="n">high_speaks_to_clean</span><span class="p">,</span>
+                       <span class="n">high_lcreb</span><span class="p">,</span>
+                       <span class="n">error_percentile_threshold</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
+                       <span class="n">zscore_threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                       <span class="n">show_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">low_peaks</span> <span class="o">=</span> <span class="n">filter_dip_peak</span><span class="p">(</span><span class="n">low_peaks_to_clean</span><span class="p">,</span>
+                       <span class="n">low_speaks_to_clean</span><span class="p">,</span>
+                       <span class="n">low_lcreb</span><span class="p">,</span>
+                       <span class="n">error_percentile_threshold</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
+                       <span class="n">zscore_threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                       <span class="n">show_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">high_dips</span> <span class="o">=</span> <span class="n">filter_dip_peak</span><span class="p">(</span><span class="n">high_dips_to_clean</span><span class="p">,</span>
+                       <span class="n">high_sdips_to_clean</span><span class="p">,</span>
+                       <span class="n">high_lcreb</span><span class="p">,</span>
+                       <span class="n">error_percentile_threshold</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
+                       <span class="n">zscore_threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                       <span class="n">show_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">low_dips</span> <span class="o">=</span> <span class="n">filter_dip_peak</span><span class="p">(</span><span class="n">low_dips_to_clean</span><span class="p">,</span>
+                       <span class="n">low_sdips_to_clean</span><span class="p">,</span>
+                       <span class="n">low_lcreb</span><span class="p">,</span>
+                       <span class="n">error_percentile_threshold</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
+                       <span class="n">zscore_threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                       <span class="n">show_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_5_0.png" src="../../_images/examples_cenx3_cenx3_5_0.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The probability of this filtered dataset is 0.9492
+The probability of this filtered dataset is 0.9545
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_5_2.png" src="../../_images/examples_cenx3_cenx3_5_2.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The probability of this filtered dataset is 0.9345
+The probability of this filtered dataset is 0.9573
+</pre></div></div>
+</div>
+<p>We can further filter the datasets as required. In this case, we will driop events of duration &gt; 5000 s.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Time filter</span>
+<span class="n">high_peaks</span> <span class="o">=</span> <span class="n">high_peaks</span><span class="p">[</span><span class="n">high_peaks</span><span class="o">.</span><span class="n">duration</span><span class="o">&lt;</span><span class="mi">5000</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">low_peaks</span> <span class="o">=</span> <span class="n">low_peaks</span><span class="p">[</span><span class="n">low_peaks</span><span class="o">.</span><span class="n">duration</span><span class="o">&lt;</span><span class="mi">5000</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">high_dips</span> <span class="o">=</span> <span class="n">high_dips</span><span class="p">[</span><span class="n">high_dips</span><span class="o">.</span><span class="n">duration</span><span class="o">&lt;</span><span class="mi">5000</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">low_dips</span> <span class="o">=</span> <span class="n">low_dips</span><span class="p">[</span><span class="n">low_dips</span><span class="o">.</span><span class="n">duration</span><span class="o">&lt;</span><span class="mi">5000</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="ANALYSIS">
+<h2>ANALYSIS<a class="headerlink" href="#ANALYSIS" title="Link to this heading">¶</a></h2>
+<p>Now we will use some functions that help us to analyse the high probability dips and peaks that we obtained.</p>
+<ul class="simple">
+<li><p>Search for clump candidates: clumps are overdense and cold structures in the stellar wind. If the radiation threspasses them is expected to observe dips with higher prominence in the low energy than in the high energy range. <strong>clump_candidates</strong> search for these eventes and plots an histogram over the lighrcurve of those candidates.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hclump</span><span class="p">,</span> <span class="n">lclump</span> <span class="o">=</span> <span class="n">clump_candidates</span><span class="p">(</span><span class="n">high_dips</span><span class="p">,</span><span class="n">low_dips</span><span class="p">,</span><span class="n">high_lcreb</span><span class="p">,</span><span class="n">overlap_threshold</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">show_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_9_0.png" src="../../_images/examples_cenx3_cenx3_9_0.png" />
+</div>
+</div>
+<ul class="simple">
+<li><p>Some very prominent dips are present in the ligt curve, lets try to group them in different types. <strong>gmm_dips_peaks</strong> is a function that classifies our high probability candidates by duration and prominence and plots it onto the light curve.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dip_cluster_stats</span><span class="p">,</span> <span class="n">dip_labels</span> <span class="o">=</span> <span class="n">gmm_dips_peaks</span><span class="p">(</span><span class="n">high_dips</span><span class="p">,</span><span class="n">high_lcreb</span><span class="p">,</span> <span class="n">log_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_11_0.png" src="../../_images/examples_cenx3_cenx3_11_0.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_11_1.png" src="../../_images/examples_cenx3_cenx3_11_1.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Cluster</th>
+      <th>Number</th>
+      <th>Mean_prominence</th>
+      <th>Mean_duration</th>
+      <th>Std_prominence</th>
+      <th>Std_duration</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0</td>
+      <td>26</td>
+      <td>98.648</td>
+      <td>894.289</td>
+      <td>54.433</td>
+      <td>591.396</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>12</td>
+      <td>32.385</td>
+      <td>27.336</td>
+      <td>7.227</td>
+      <td>22.874</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2</td>
+      <td>6</td>
+      <td>1.948</td>
+      <td>203.101</td>
+      <td>1.770</td>
+      <td>58.206</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>As we see, there are three goups of dips showinf a high Silhouette score. In <a class="reference external" href="https://arxiv.org/abs/2012.11683">https://arxiv.org/abs/2012.11683</a> prominent dips were suggested to be formed by the interaction of the NS magnetosphere with the acretion disc</p>
+<ul class="simple">
+<li><p>Lets see if the peaks in the dataset tend to overlap in the high and low energy range. To that end, we unse the function <strong>overlap</strong>, which provides the overlap duration, the indexes of the datasets in which overlap occurs and the percentage of overlap for each of the events. As an example, we can consider an overlap if the high and low energy range at least the 75% of their duration.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">overlap_s</span><span class="p">,</span> <span class="n">high_index</span><span class="p">,</span> <span class="n">low_index</span><span class="p">,</span> <span class="n">high_ov_per</span><span class="p">,</span> <span class="n">low_ov_per</span> <span class="o">=</span> <span class="n">overlap_percentaje</span><span class="p">(</span><span class="n">high_peaks</span><span class="p">,</span><span class="n">low_peaks</span><span class="p">,</span><span class="n">high_lcreb</span><span class="p">,</span> <span class="n">percentaje</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span><span class="n">show_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_14_0.png" src="../../_images/examples_cenx3_cenx3_14_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">peak_cluster_stats</span><span class="p">,</span> <span class="n">peak_labels</span> <span class="o">=</span> <span class="n">gmm_dips_peaks</span><span class="p">(</span><span class="n">high_peaks</span><span class="p">,</span><span class="n">high_lcreb</span><span class="p">,</span> <span class="n">log_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_15_0.png" src="../../_images/examples_cenx3_cenx3_15_0.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_15_1.png" src="../../_images/examples_cenx3_cenx3_15_1.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Cluster</th>
+      <th>Number</th>
+      <th>Mean_prominence</th>
+      <th>Mean_duration</th>
+      <th>Std_prominence</th>
+      <th>Std_duration</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0</td>
+      <td>33</td>
+      <td>80.460</td>
+      <td>862.852</td>
+      <td>21.696</td>
+      <td>653.882</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>22</td>
+      <td>1.943</td>
+      <td>175.436</td>
+      <td>4.081</td>
+      <td>139.114</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2</td>
+      <td>2</td>
+      <td>65.353</td>
+      <td>25.041</td>
+      <td>2.673</td>
+      <td>3.670</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="EVERYTHING-TOGETHER">
+<h2>EVERYTHING TOGETHER<a class="headerlink" href="#EVERYTHING-TOGETHER" title="Link to this heading">¶</a></h2>
+<p>To finish, we collect in the following plot high probability peaks and those dips that were associated with NS/disc iteration and those that could be clump candidates.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">long_dip_cluster</span> <span class="o">=</span> <span class="n">dip_cluster_stats</span><span class="o">.</span><span class="n">Cluster</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dip_cluster_stats</span><span class="o">.</span><span class="n">Mean_duration</span><span class="p">)]</span> <span class="c1">#Dips associated with interactions with the magnetosphere</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">high_lcreb</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">high_lcreb</span><span class="o">.</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+<span class="c1">#plt.plot(high_dips.t,high_lcreb.c[high_dips.pos],&quot;go&quot;)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">high_dips</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="n">dip_labels</span><span class="o">==</span><span class="n">long_dip_cluster</span><span class="p">],</span><span class="n">high_lcreb</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="n">high_dips</span><span class="o">.</span><span class="n">pos</span><span class="p">][</span><span class="n">dip_labels</span><span class="o">==</span><span class="n">long_dip_cluster</span><span class="p">],</span><span class="s2">&quot;*b&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Dips associated to NS/disc interaction&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">high_peaks</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="n">high_index</span><span class="p">],</span><span class="n">high_lcreb</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="n">high_peaks</span><span class="o">.</span><span class="n">pos</span><span class="p">[</span><span class="n">high_index</span><span class="p">]],</span><span class="s2">&quot;*r&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Peaks present in high and low energy bands&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">hclump</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">ymin</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">high_lcreb</span><span class="o">.</span><span class="n">c</span><span class="p">),</span> <span class="n">ymax</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">high_lcreb</span><span class="o">.</span><span class="n">c</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Clump candidates&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;matplotlib.legend.Legend at 0x1699c2060&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_cenx3_cenx3_17_1.png" src="../../_images/examples_cenx3_cenx3_17_1.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../../api/rationale.html" class="btn btn-neutral float-left" title="How dipspeaks builds its synthetic (“noise-only”) light curves" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../noise/noise.html" class="btn btn-neutral float-right" title="Behaviour of dipspeaks package in a Fake Light Curve" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
