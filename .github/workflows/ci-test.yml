@@ -2,33 +2,40 @@ name: Run CI-test
 
 on:
   push:
-    branches: ["**"]
+    branches:
+      - '**'  # This will trigger on pushes to any branch
   pull_request:
-    branches: ["**"]
+    branches:
+      - '**'  # This will trigger on pull requests to any branch
   schedule:
-    - cron: '0 6 * * 1'      # Mondays at 06:00 UTC
+    # Run every Monday at 6am UTC
+    - cron: '0 6 * * 1'
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         python-version: ["3.8", "3.10", "3.12"]
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v5
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install project + test dependencies
+    - name: Install dependencies
       run: |
+        pip install --upgrade pip
+        pip install --upgrade dipspeaks
         pip install pytest
-        python -m pip install --upgrade pip
-        python -m pip install .[test]        
-        
-    - name: Run pytest with coverage
+        pip install pytest-cov
+
+    - name: Run tests with coverage
       run: |
-        cd tests
-        pytest 
+        cd tests  # Navigate to the test directory
+        pytest
