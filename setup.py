@@ -23,5 +23,7 @@ setup(
         "seaborn",
         "tensorflow",
         "scikit-learn",
+        "ipython>=8",   # ← aquí
+        "numpy>=1.24",
     ],
 )
