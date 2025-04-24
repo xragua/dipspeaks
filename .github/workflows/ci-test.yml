@@ -3,10 +3,10 @@ name: Run CI-test
 on:
   push:
     branches:
-      - '**'  # This will trigger on pushes to any branch
+      - '**'  
   pull_request:
     branches:
-      - '**'  # This will trigger on pull requests to any branch
+      - '**'  
   schedule:
     # Run every Monday at 6am UTC
     - cron: '0 6 * * 1'
@@ -37,5 +37,5 @@ jobs:
 
     - name: Run tests with coverage
       run: |
-        cd tests  # Navigate to the test directory
+        cd tests  
         pytest
