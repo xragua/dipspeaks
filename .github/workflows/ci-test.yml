@@ -30,7 +30,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install dipspeaks==0.1
+        pip install dipspeaks==0.2
         pip install --upgrade pip
         pip install --upgrade dipspeaks
         pip install pytest
