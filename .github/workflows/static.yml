@@ -23,8 +23,8 @@ jobs:
           python-version: "3.11"
 
       # 3 – install your doc requirements
-      - run: |
-          pip install -r docs/requirements.txt
+      #- run: |
+       #   pip install -r docs/requirements.txt
 
       # 4 – build HTML into ./site
       - run: |
