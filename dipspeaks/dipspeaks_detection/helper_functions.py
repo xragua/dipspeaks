@@ -4,63 +4,18 @@
 ##########################################################################################
 # Import Libraries
 # Standard libraries
-import os
-import glob
-import itertools
-import pickle
-import random
+
 import warnings
 
 # Data manipulation and analysis
 import numpy as np
-import pandas as pd
-import random
-# Plotting and visualization
-import matplotlib.pyplot as plt
-import seaborn as sns
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.pyplot import cm
 
-# SciPy for scientific computing
-from scipy import signal, stats as s
-from scipy.cluster.hierarchy import dendrogram, linkage
-from scipy.fftpack import fft
-from scipy.interpolate import CubicSpline, PchipInterpolator
-from scipy.optimize import curve_fit
-from scipy.signal import (
-    find_peaks, peak_widths, peak_prominences, savgol_filter, find_peaks_cwt
-)
-from scipy.spatial.distance import pdist, cdist
-from scipy.special import erf
-from scipy.stats import kde, mode, skewnorm, norm
-from scipy import signal
-
-# Scikit-learn for machine learning
-from sklearn import metrics
-from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans, Birch, SpectralClustering
-from sklearn.decomposition import PCA
-from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances
-from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, Normalizer, StandardScaler
-
-# TensorFlow and Keras for deep learning
-import tensorflow as tf
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.layers import Input, Dense
-from tensorflow.keras.models import Model
-from statsmodels.tsa.arima_process import ArmaProcess
 
 # Ignore warnings
 warnings.filterwarnings('ignore')
 warnings.filterwarnings('ignore', category=RuntimeWarning)
 warnings.filterwarnings('ignore', message='divide by zero encountered in divide')
 
-#########################################################################################
-pipeline = Pipeline([
-    ('normalizer', Normalizer()),
-    ('scaler', MinMaxScaler())
-])
 
 ################################## HELPER  ############################################
 #########################################################################################
@@ -178,3 +133,25 @@ def _base_calculator(y):
     # Return the element-wise minimum between base and original y
     return np.minimum(base, y)
 
+def scale(x, y):
+    """
+    Scale the `x` data to match the range of the `y` data. The purpose is facilitate creation of plots.
+
+    This function scales the values in the `x` array to match the range of the `y` array.
+    It linearly transforms the `x` values such that they span the same range as `y`.
+
+    Parameters
+    ----------
+    x : array-like
+        The input data to be scaled.
+    y : array-like
+        The data whose range is used for scaling `x`.
+
+    Returns
+    -------
+    x_new : array-like
+        The scaled version of `x`, with values transformed to the range of `y`.
+    """
+
+    x_new = ((max(y) - min(y)) / (max(x) - min(x))) * (x - max(x)) + max(y)
+    return x_new

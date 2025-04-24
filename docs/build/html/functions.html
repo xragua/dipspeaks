@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dipspeaks – Key Public Functions &mdash; dipspeaks 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            dipspeaks
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Example Notebooks:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/cenx3/cenx3.html">Cen X-3 Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/noise/noise.html">Behaviour of dipspeaks package in a Fake Light Curve</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">dipspeaks</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">dipspeaks – Key Public Functions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/functions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="dipspeaks-key-public-functions">
+<h1>dipspeaks – Key Public Functions<a class="headerlink" href="#dipspeaks-key-public-functions" title="Link to this heading">¶</a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#clump-candidates" id="id13">clump_candidates</a></p></li>
+<li><p><a class="reference internal" href="#filter-dip-peak" id="id14">filter_dip_peak</a></p></li>
+<li><p><a class="reference internal" href="#gmm-dips-peaks" id="id15">gmm_dips_peaks</a></p></li>
+<li><p><a class="reference internal" href="#overlap" id="id16">overlap</a></p></li>
+<li><p><a class="reference internal" href="#detect-dips-and-peaks" id="id17">detect_dips_and_peaks</a></p></li>
+<li><p><a class="reference internal" href="#rebin-snr" id="id18">rebin_snr</a></p></li>
+<li><p><a class="reference internal" href="#scale" id="id19">scale</a></p></li>
+</ul>
+</nav>
+<section id="clump-candidates">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">clump_candidates</a><a class="headerlink" href="#clump-candidates" title="Link to this heading">¶</a></h2>
+<p>Identify clumped dips between high- and low-energy features
+based on overlap and relative prominence.</p>
+<section id="parameters">
+<h3><strong>Parameters</strong><a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">high_dips</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></span></dt><dd><p>Columns required:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ti</span></code> – start time</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">te</span></code> – end time</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">relprominence</span></code> – relative prominence</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">t</span></code> – representative time (for plots)</p></li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">low_dips</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></span></dt><dd><p>Same columns as <em>high_dips</em>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">lc</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></span></dt><dd><p>Light-curve context; needs <code class="docutils literal notranslate"><span class="pre">t</span></code> (time) and <code class="docutils literal notranslate"><span class="pre">c</span></code> (rate).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">overlap_threshold</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">0.75</span></code></span></dt><dd><p>Minimum fractional overlap (both directions).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">bin_number</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">100</span></code></span></dt><dd><p>Number of histogram bins when plotting.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">show_plot</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">False</span></code></span></dt><dd><p>Show diagnostic histograms if <em>True</em>.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h3><strong>Returns</strong><a class="headerlink" href="#returns" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">high_clump</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></span></dt><dd><p>Subset of <em>high_dips</em> that meet the criteria.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">low_clump</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></span></dt><dd><p>Matching subset from <em>low_dips</em>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="filter-dip-peak">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">filter_dip_peak</a><a class="headerlink" href="#filter-dip-peak" title="Link to this heading">¶</a></h2>
+<p>Filter detected dips/peaks by reconstruction-error percentile and z-score,
+optionally plot them, and estimate their “real” probability.</p>
+<section id="id1">
+<h3><strong>Parameters</strong><a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">dataset</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></span></dt><dd><p>Must contain <code class="docutils literal notranslate"><span class="pre">error_percentile</span></code>, <code class="docutils literal notranslate"><span class="pre">zscores</span></code>, <code class="docutils literal notranslate"><span class="pre">pos</span></code>, <code class="docutils literal notranslate"><span class="pre">t</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">simdataset</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></span></dt><dd><p>Synthetic (noise-only) features; needs <code class="docutils literal notranslate"><span class="pre">t</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">lc_reb</span></code><span class="classifier">object</span></dt><dd><p>Re-binned light curve with attributes <code class="docutils literal notranslate"><span class="pre">t</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">error_percentile_threshold</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">0.9</span></code></span></dt><dd><p>Keep features above this percentile.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">zscore_threshold</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">4</span></code></span></dt><dd><p>Keep features with z-score ≥ threshold.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">show_plot</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">True</span></code></span></dt><dd><p>Overlay surviving features on the light curve.</p>
+</dd>
+</dl>
+</section>
+<section id="id2">
+<h3><strong>Returns</strong><a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></dt><dd><p>Filtered subset of <em>dataset</em> (index reset).</p>
+</dd>
+</dl>
+<p><em>Side effect –</em> prints the probability of observing that event rate in noise.</p>
+</section>
+</section>
+<section id="gmm-dips-peaks">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">gmm_dips_peaks</a><a class="headerlink" href="#gmm-dips-peaks" title="Link to this heading">¶</a></h2>
+<p>Perform Gaussian-mixture clustering on dip/peak data.</p>
+<section id="id3">
+<h3><strong>Parameters</strong><a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">good_pd</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></span></dt><dd><p>Data to cluster.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">log_scale</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></dt><dd><p>If <em>True</em>, apply <code class="docutils literal notranslate"><span class="pre">log10</span></code> to the features before clustering.</p>
+</dd>
+</dl>
+</section>
+<section id="id4">
+<h3><strong>Returns</strong><a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">cluster_stats_df</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></span></dt><dd><p>Per-cluster statistics.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cluster_labels</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></span></dt><dd><p>Cluster label for every row in <em>good_pd</em>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="overlap">
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">overlap</a><a class="headerlink" href="#overlap" title="Link to this heading">¶</a></h2>
+<p>Compute pair-wise overlap durations and ratios between two sets of
+features (dips or peaks).</p>
+<section id="id5">
+<h3><strong>Parameters</strong><a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">high</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></span></dt><dd><p>Columns <code class="docutils literal notranslate"><span class="pre">ti</span></code> and <code class="docutils literal notranslate"><span class="pre">te</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">low</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame`</span></code></span></dt><dd><p>Same two columns.</p>
+</dd>
+</dl>
+</section>
+<section id="id6">
+<h3><strong>Returns</strong><a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">overlap_durations</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>
+<code class="docutils literal notranslate"><span class="pre">high_indices</span></code>      : <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>
+<code class="docutils literal notranslate"><span class="pre">low_indices</span></code>       : <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>
+<code class="docutils literal notranslate"><span class="pre">high_overlap_ratio</span></code>: <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>
+<code class="docutils literal notranslate"><span class="pre">low_overlap_ratio</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></p>
+</section>
+<section id="math-definitions">
+<h3>Math definitions<a class="headerlink" href="#math-definitions" title="Link to this heading">¶</a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}r_\\text{high} \\,=\\,
+\\frac{\\text{overlap}}
+     {\\text{high.te} - \\text{high.ti}}
+\\qquad
+r_\\text{low} \\,=\\,
+\\frac{\\text{overlap}}
+     {\\text{low.te}  - \\text{low.ti}}\end{split}\]</div>
+</section>
+</section>
+<section id="detect-dips-and-peaks">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">detect_dips_and_peaks</a><a class="headerlink" href="#detect-dips-and-peaks" title="Link to this heading">¶</a></h2>
+<p>Detect dips and peaks in a light curve via
+S/N thresholding, synthetic-data generation, and
+autoencoder-based anomaly detection.</p>
+<section id="id7">
+<h3><strong>Parameters</strong><a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">lc</span></code><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></dt><dd><p>Path to the input light-curve text file.</p>
+</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">snr</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">0.15</span></code>
+<code class="docutils literal notranslate"><span class="pre">index_time</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">0</span></code>
+<code class="docutils literal notranslate"><span class="pre">index_rate</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">1</span></code>
+<code class="docutils literal notranslate"><span class="pre">index_error_rate</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">2</span></code>
+<code class="docutils literal notranslate"><span class="pre">num_simulations</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">1</span></code>
+<code class="docutils literal notranslate"><span class="pre">show_plot</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>default</em> <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
+</section>
+<section id="id8">
+<h3><strong>Returns</strong><a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">peaks_to_clean</span></code>   : <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>
+<code class="docutils literal notranslate"><span class="pre">dips_to_clean</span></code>    : <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>
+<code class="docutils literal notranslate"><span class="pre">lcreb</span></code>            : <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>
+<code class="docutils literal notranslate"><span class="pre">speaks_to_clean</span></code>  : <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>
+<code class="docutils literal notranslate"><span class="pre">sdips_to_clean</span></code>   : <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></p>
+</section>
+</section>
+<section id="rebin-snr">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">rebin_snr</a><a class="headerlink" href="#rebin-snr" title="Link to this heading">¶</a></h2>
+<p>Re-bin a signal to achieve a target S/N threshold.</p>
+<section id="id9">
+<h3><strong>Parameters</strong><a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">t</span></code>                : array-like (time)
+<code class="docutils literal notranslate"><span class="pre">x</span></code>                : array-like (signal)
+<code class="docutils literal notranslate"><span class="pre">sy</span></code>               : array-like (uncertainty)
+<code class="docutils literal notranslate"><span class="pre">snr_threshold</span></code>    : <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></p>
+</section>
+<section id="id10">
+<h3><strong>Returns</strong><a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">t_new</span></code> : array-like
+<code class="docutils literal notranslate"><span class="pre">c_new</span></code> : array-like
+<code class="docutils literal notranslate"><span class="pre">sc_new</span></code>: array-like</p>
+</section>
+</section>
+<section id="scale">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">scale</a><a class="headerlink" href="#scale" title="Link to this heading">¶</a></h2>
+<p>Linearly scale <em>x</em> so that its range matches <em>y</em> (useful for overlays).</p>
+<section id="id11">
+<h3><strong>Parameters</strong><a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">x</span></code> : array-like
+<code class="docutils literal notranslate"><span class="pre">y</span></code> : array-like</p>
+</section>
+<section id="id12">
+<h3><strong>Returns</strong><a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">x_new</span></code> : array-like</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

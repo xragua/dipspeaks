@@ -25,14 +25,51 @@ def _calculate_synthetic_data(t, c, sc, num_simulations, *, seed=None,
                               cutoff_s=5000,
                               butter_order=1):
     '''
-    Generate `num_simulations` synthetic light curves that keep only the
-    noise characteristics of the original curve (any real peaks/dips are
-    destroyed by shuffling the residuals).
+   """
+    Generate synthetic light curves preserving only the noise characteristics
+    of an input time series by randomizing residuals.
 
-    Uses reflected padding to prevent edge artifacts in the trend.
+    The input residuals are obtained by high‐pass filtering (Butterworth) with
+    reflected padding to avoid edge artifacts. Extreme outliers in the residuals
+    (|z| > 3) are replaced by samples drawn from the “safe” pool (|z| < 1).
+    The procedure is repeated for `num_simulations` by shuffling both the
+    residuals and the time differences, producing flattened arrays of
+    time, counts, and count errors.
 
-    Values in the residuals with |zscore| > 3 are replaced with random values
-    drawn from |zscore| < 1.
+    Parameters
+    ----------
+    t : array_like, shape (n,)
+        Time stamps of the original light curve.
+    c : array_like, shape (n,)
+        Count rates (or fluxes) corresponding to each time stamp.
+    sc : array_like, shape (n,)
+        1-sigma uncertainties on the counts `c`.
+    num_simulations : int
+        Number of synthetic light curve realizations to generate.
+    
+    Keyword Arguments
+    -----------------
+    seed : int or array_like or None, optional
+        Seed or RNG state for reproducible shuffling.  Defaults to `None`.
+    cutoff_s : float, default 5000
+        Cut‐off period (in the same units as `t`) for the high‐pass Butterworth
+        filter; wavelengths longer than this are removed.
+    butter_order : int, default 1
+        Order of the high‐pass Butterworth filter.
+
+    Returns
+    -------
+    tsim : ndarray, shape (n * num_simulations,)
+        Concatenated time arrays for each simulation.  Each block of length `n`
+        starts at the original `t[0]` plus the preceding simulation’s total
+        duration, with shuffled time differences.
+    simc : ndarray, shape (n * num_simulations,)
+        Synthetic count rates: the shuffled, filtered residuals shifted to have
+        the same mean as the original `c`.
+    ssimc : ndarray, shape (n * num_simulations,)
+        Synthetic 1-sigma count uncertainties, computed from the shuffled
+        relative errors and post‐filter counts, with outliers (|z| > 3)
+        similarly replaced by “safe” values.
     '''
     rng = np.random.default_rng(seed)
 

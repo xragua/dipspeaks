@@ -28,3 +28,5 @@ from .evaluation import(
    _real_probability,
 )
 
+from .analysis import *
+

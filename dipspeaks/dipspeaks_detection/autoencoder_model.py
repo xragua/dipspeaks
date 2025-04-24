@@ -13,39 +13,16 @@ import pandas as pd
 
 # Plotting and visualization
 import matplotlib.pyplot as plt
-import seaborn as sns
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.pyplot import cm
-
-# SciPy for scientific computing
-from scipy import signal, stats as s
-from scipy.cluster.hierarchy import dendrogram, linkage
-from scipy.fftpack import fft
-from scipy.interpolate import CubicSpline, PchipInterpolator
-from scipy.optimize import curve_fit
-from scipy.signal import (
-    find_peaks, peak_widths, peak_prominences, savgol_filter, find_peaks_cwt
-)
-from scipy.spatial.distance import pdist, cdist
-from scipy.special import erf
-from scipy.stats import kde, mode, skewnorm, norm
-from scipy import signal
 
 # Scikit-learn for machine learning
-from sklearn import metrics
-from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans, Birch, SpectralClustering
-from sklearn.decomposition import PCA
-from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances
-from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, Normalizer, StandardScaler
+from sklearn.preprocessing import MinMaxScaler, Normalizer
 
 # TensorFlow and Keras for deep learning
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.models import Model
-from statsmodels.tsa.arima_process import ArmaProcess
 
 # Ignore warnings
 warnings.filterwarnings('ignore')
@@ -81,14 +58,13 @@ from .evaluation import(
 
 
 
-def _clean_autoencoder(pd_to_clean, pd_base, show_plot_eval,show_plot=True):
+def _clean_autoencoder(pd_to_clean, pd_base, show_plot_eval, show_plot=True):
     '''
     Clean a dataset by detecting and flagging outliers using an autoencoder model.
 
     This function builds an autoencoder to reconstruct data from a baseline dataset (`pd_base`).
     It then uses the reconstruction errors to identify outliers in a separate dataset (`pd_to_clean`)
-    based on the specified features. Outlier probabilities and flags are added to the original
-    dataframe (`pd_to_clean`).
+    based on the specified features. 
 
     Parameters:
     - pd_to_clean (pd.DataFrame): The dataset to be cleaned, containing columns that match those in
@@ -98,8 +74,8 @@ def _clean_autoencoder(pd_to_clean, pd_base, show_plot_eval,show_plot=True):
 
     Returns:
     - pd_to_clean (pd.DataFrame): The input dataframe with additional columns:
-        - 'outlier_prob': The calculated outlier probability based on reconstruction error.
-        - 'is_outlier': A flag indicating whether the row is an outlier (1) or not (0).
+        - **zscores** (`float`): z-score of each sample’s reconstruction error  
+        - **error_percentile** (`float`): percentile rank of the reconstruction errors  
     - mse_test (np.array): Mean squared reconstruction errors for the `pd_to_clean` dataset.
     - mse_train (np.array): Mean squared reconstruction errors for the `pd_base` dataset.
     '''

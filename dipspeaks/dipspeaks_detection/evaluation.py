@@ -18,7 +18,6 @@ warnings.filterwarnings('ignore')
 warnings.filterwarnings('ignore', category=RuntimeWarning)
 warnings.filterwarnings('ignore', message='divide by zero encountered in divide')
 
-
 #########################################################################################
 #########################################################################################
 

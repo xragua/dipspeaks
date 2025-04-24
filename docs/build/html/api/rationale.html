@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How dipspeaks builds its synthetic (“noise-only”) light curves &mdash; dipspeaks 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Cen X-3 Analysis" href="../examples/cenx3/cenx3.html" />
+    <link rel="prev" title="Welcome to dipspeaks’s documentation!" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            dipspeaks
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Rationale:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How dipspeaks builds its synthetic (“noise-only”) light curves</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#algorithm-step-by-step">Algorithm – step by step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-it-works">Why it works</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#how-the-auto-encoder-scores-dips-peaks">How the auto-encoder scores dips &amp; peaks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#why-an-auto-encoder">Why an auto-encoder?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workflow-of-clean-autoencoder">Workflow of <code class="docutils literal notranslate"><span class="pre">_clean_autoencoder</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#typical-thresholds">Typical thresholds</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#probability-based-on-an-excess">Probability based on an excess</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#a-linear-confidence-score">A linear confidence score</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Notebooks:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/cenx3/cenx3.html">Cen X-3 Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/noise/noise.html">Behaviour of dipspeaks package in a Fake Light Curve</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Functions:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_reference.html">dipspeaks – Key Public Functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">dipspeaks</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">How dipspeaks builds its synthetic (“noise-only”) light curves</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/rationale.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <nav class="contents local" id="contents" role="doc-toc">
+<ul class="simple">
+<li><p><a class="reference internal" href="#how-dipspeaks-builds-its-synthetic-noise-only-light-curves" id="id1">How dipspeaks builds its synthetic (“noise-only”) light curves</a></p></li>
+<li><p><a class="reference internal" href="#how-the-auto-encoder-scores-dips-peaks" id="id2">How the auto-encoder scores dips &amp; peaks</a></p></li>
+<li><p><a class="reference internal" href="#probability-based-on-an-excess" id="id3">Probability based on an excess</a></p></li>
+</ul>
+</nav>
+<p>The main characteristic of this package is the hability of detecting subtle features from lightcurves.
+The main idea is very simple:</p>
+<p>In a light curve we can detect features caused by astrophisical phenoma and features caused by random noise. If we learn how this random noise features look like, we can discard them if we detect them in the light curve.</p>
+<p>It is key to obtain good synthetic data to compare properly. This is how we do so:</p>
+<section id="how-dipspeaks-builds-its-synthetic-noise-only-light-curves">
+<h1><a class="toc-backref" href="#id1" role="doc-backlink">How dipspeaks builds its synthetic (“noise-only”) light curves</a><a class="headerlink" href="#how-dipspeaks-builds-its-synthetic-noise-only-light-curves" title="Link to this heading">¶</a></h1>
+<p>The routine generates many light-curve realisations that <em>preserve only
+the noise properties</em> of the observation, while intentionally destroying
+every real dip, peak, or long-term trend.
+These curves train the auto-encoder, teaching it <strong>what noise looks like</strong> so
+that true astrophysical events stand out as anomalies.</p>
+<section id="algorithm-step-by-step">
+<h2>Algorithm – step by step<a class="headerlink" href="#algorithm-step-by-step" title="Link to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p><strong>Isolate the fast noise</strong></p>
+<ul class="simple">
+<li><p>Apply a high-pass Butterworth filter (cut-off = <strong>5000 s</strong> by default).</p></li>
+<li><p>Padding is <em>reflected</em> so the filter has no edge artefacts.</p></li>
+<li><p>The result is a <em>residual</em> series <code class="docutils literal notranslate"><span class="pre">resid</span></code> containing just noise.</p></li>
+</ul>
+</li>
+<li><p><strong>Clip crazy samples</strong></p>
+<p>Any residual with <code class="docutils literal notranslate"><span class="pre">|z|</span> <span class="pre">&gt;</span> <span class="pre">3</span></code> is replaced by a random “safe” sample with
+<code class="docutils literal notranslate"><span class="pre">|z|</span> <span class="pre">&lt;</span> <span class="pre">1</span></code>.
+This prevents true dips/peaks from leaking into the noise pool.</p>
+</li>
+<li><p><strong>Store fractional errors</strong></p>
+<div class="math notranslate nohighlight">
+\[sc_{\mathrm{prop}} \;=\; \frac{sc}{c}\]</div>
+<p>This relative uncertainty is reused later so the synthetic curve keeps the
+same heteroscedasticity as the data.</p>
+</li>
+<li><p><strong>Repeat for each simulation</strong></p>
+<ul>
+<li><p>Shuffle <code class="docutils literal notranslate"><span class="pre">resid</span></code> ⇒ breaks temporal coherence.</p></li>
+<li><p>Shuffle the vector of <strong>time differences</strong> so the overall cadence pattern
+is preserved but the order is random.</p></li>
+<li><p>Re-scale errors:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>ssimc = |sc_prop_shuffled × simc|
+</pre></div>
+</div>
+<p>and clip outliers with the same z-score rule.</p>
+</li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="why-it-works">
+<h2>Why it works<a class="headerlink" href="#why-it-works" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>High-pass filtering decouples slow orbital/instrumental trends.</p></li>
+<li><p>Shuffling destroys any real variability but leaves the noise distribution
+untouched.</p></li>
+<li><p>Outlier clipping guards against residual real events.</p></li>
+<li><p>Re-using <strong>sc / c</strong> keeps the correct error-vs-flux scaling.</p></li>
+</ul>
+<p>The resulting curves are therefore ideal <em>negative</em> examples for the
+auto-encoder’s anomaly-detection stage.</p>
+</section>
+</section>
+<section id="how-the-auto-encoder-scores-dips-peaks">
+<h1><a class="toc-backref" href="#id2" role="doc-backlink">How the auto-encoder scores dips &amp; peaks</a><a class="headerlink" href="#how-the-auto-encoder-scores-dips-peaks" title="Link to this heading">¶</a></h1>
+<section id="why-an-auto-encoder">
+<h2>Why an auto-encoder?<a class="headerlink" href="#why-an-auto-encoder" title="Link to this heading">¶</a></h2>
+<p>An <strong>auto-encoder</strong> is a tiny neural network that tries to copy its input back
+to itself.
+If it is trained only on <em>noise-like</em> examples, it becomes very good at
+reproducing noise — and bad at reproducing anything that doesn’t look
+like the training set.
+The reconstruction error therefore acts as an <em>anomaly score</em>.</p>
+<p>In dipspeaks we <strong>train the auto-encoder on the synthetic, noise-only
+features</strong> and then ask it to reconstruct the features found in the <strong>real</strong>
+light curve.</p>
+</section>
+<section id="workflow-of-clean-autoencoder">
+<h2>Workflow of <code class="docutils literal notranslate"><span class="pre">_clean_autoencoder</span></code><a class="headerlink" href="#workflow-of-clean-autoencoder" title="Link to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p><strong>Select a compact feature vector</strong></p>
+<p>The four columns</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">prominence</span></code> – depth or prominence</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">duration</span></code> – width in seconds</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">density</span></code> – (depth/prominence) / duration</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">snr</span></code> – local signal-to-noise</p></li>
+</ul>
+<p>capture each dip/peak in a 4-D point.</p>
+</li>
+<li><p><strong>Build a symmetric auto-encoder</strong></p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Encoder</p></td>
+<td><p>Decoder</p></td>
+</tr>
+<tr class="row-even"><td><p>256 → 128 → 64 → 32 → 16</p></td>
+<td><p>32 ← 64 ← 128 ← 256</p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p>all layers use <strong>ELU</strong> activations</p></li>
+<li><p>loss = <strong>mean-absolute-error</strong></p></li>
+<li><p>early-stopping &amp; LR-plateau callbacks guard against over-fitting</p></li>
+</ul>
+</li>
+<li><p><strong>Train only on the *baseline* set</strong></p>
+<p><code class="docutils literal notranslate"><span class="pre">pd_base</span></code> comes from the <strong>synthetic light curve</strong>, so by definition it is
+“noise”.  After ~hundreds of epochs the AE can reconstruct these vectors
+with tiny error.</p>
+</li>
+<li><p><strong>Score the real features</strong></p>
+<ul class="simple">
+<li><p>Calculate <strong>MSE</strong> between each real vector and its reconstruction.</p></li>
+<li><p>Compare that distribution with the training error distribution.</p></li>
+<li><p>Convert to</p>
+<ul>
+<li><p><strong>z-scores</strong> (standard deviations from the training mean)</p></li>
+<li><p><strong>percentiles</strong> (how extreme each error is w.r.t. noise)</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Augment the DataFrame</strong></p>
+<p>Two new columns are added:</p>
+<ul class="simple">
+<li><p><strong>zscores</strong>    Standard-score of the reconstruction error.</p></li>
+<li><p><strong>error_percentile</strong>  Position of that error in the cumulative distribution of the syntetic dataset</p></li>
+</ul>
+<p>High values in <em>either</em> column mark a likely real dip/peak.</p>
+</li>
+</ol>
+</section>
+<section id="typical-thresholds">
+<h2>Typical thresholds<a class="headerlink" href="#typical-thresholds" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">zscores</span>&#160;&#160; <span class="pre">&gt;</span> <span class="pre">3</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">percentile</span> <span class="pre">&gt;</span> <span class="pre">0.99</span></code></p></li>
+</ul>
+<p>But, in the synthetic light curve we will still find features over a 0.99 percentile error and high zscore, right?
+Yes, but to evaluate the probability of the dataset by comparing the <strong>rate</strong> (filterd fetures/s) in the real light curve vs
+in the synthetic light curve.</p>
+</section>
+</section>
+<section id="probability-based-on-an-excess">
+<h1><a class="toc-backref" href="#id3" role="doc-backlink">Probability based on an excess</a><a class="headerlink" href="#probability-based-on-an-excess" title="Link to this heading">¶</a></h1>
+<p>Once dips or peaks have passed the auto-encoder’s outlier test we still need a
+<em>sanity check</em>:
+<strong>How often would noise alone deliver the same number of survivors?</strong></p>
+<p>The idea is simple:</p>
+<ol class="arabic simple">
+<li><p><strong>Count what survives in the real data</strong>
+<span class="math notranslate nohighlight">\(R_\text{real}\)</span>   = “events per second” after all cuts.</p></li>
+<li><p><strong>Count what survives in a noise-only light curve</strong>
+<span class="math notranslate nohighlight">\(R_\text{sim}\)</span>   = the <em>false-positive</em> rate our pipeline produces
+when there is, by construction, nothing to detect.</p></li>
+<li><p><strong>Compare the two</strong>
+The larger the gap between the real data rate vs the synthetic rate, the more confident we are that
+the events in the real data are <strong>not</strong> random noise.</p></li>
+</ol>
+<section id="a-linear-confidence-score">
+<h2>A linear confidence score<a class="headerlink" href="#a-linear-confidence-score" title="Link to this heading">¶</a></h2>
+<p>We convert the comparison into a probability-like number</p>
+<div class="math notranslate nohighlight">
+\[\text{confidence} \;=\;
+\frac{R_\text{real} - R_\text{sim}}{R_\text{real}}
+\quad\in\;[0,1]\]</div>
+<ul class="simple">
+<li><p><strong>1.0</strong>  → the synthetic (noise) curve produced <strong>zero</strong> such events.</p></li>
+<li><p><strong>0.0</strong>  → everything you see in the real curve is equally common in noise.</p></li>
+<li><p>Values in between scale linearly with the “excess” over the noise rate.</p></li>
+</ul>
+<p>By varying the thresholds, we can check the probability of the filtered data set (using the function <strong>filter_dip_peak</strong>).</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to dipspeaks’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../examples/cenx3/cenx3.html" class="btn btn-neutral float-right" title="Cen X-3 Analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

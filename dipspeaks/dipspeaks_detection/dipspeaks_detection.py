@@ -34,7 +34,6 @@ pipeline = Pipeline([
 
 from .helper_functions import (
      rebin_snr,
-     _moving_average,
     _base_calculator,
 )
 
@@ -51,8 +50,6 @@ from .autoencoder_model import (
 )
 
 from .evaluation import(
-    _modified_z_score,
-    _outlier_probability,
     _real_probability,
 )
 
@@ -62,6 +59,50 @@ from .evaluation import(
 #########################################################################################
 
 def detect_dips_and_peaks(lc, snr=0.15 ,index_time=0, index_rate=1, index_error_rate=2, num_simulations=1, show_plot = True):
+    """    
+    Detects dips and peaks in a given light curve using signal-to-noise ratio thresholding,
+    synthetic data generation, and autoencoder-based anomaly detection.
+
+    Parameters:
+    -----------
+    lc : str
+        File path to the input light curve (LC) data in text format.
+
+    snr : float, optional (default=0.15)
+        The signal-to-noise ratio (SNR) threshold used to rebin the light curve data.
+
+    index_time : int, optional (default=0)
+        Column index for time data in the LC file.
+
+    index_rate : int, optional (default=1)
+        Column index for count rate data in the LC file.
+
+    index_error_rate : int, optional (default=2)
+        Column index for error in count rate data in the LC file.
+
+    num_simulations : int, optional (default=1)
+        Number of synthetic data simulations to generate for noise estimation and anomaly detection.
+
+    show_plot : bool, optional (default=True)
+        Whether to display plots illustrating the detection process and results.
+
+    Returns:
+    --------
+    peaks_to_clean : pandas.DataFrame
+        Detected peaks from the original LC data, along with calculated anomaly scores.
+
+    dips_to_clean : pandas.DataFrame
+        Detected dips from the original LC data, along with calculated anomaly scores.
+
+    lcreb : pandas.DataFrame
+        Rebinned LC data after applying the SNR threshold.
+
+    speaks_to_clean : pandas.DataFrame
+        Detected peaks from the synthetic (simulated) LC data, for comparative analysis.
+
+    sdips_to_clean : pandas.DataFrame
+        Detected dips from the synthetic (simulated) LC data, for comparative analysis.
+    """
 
     num_simulations=num_simulations
     

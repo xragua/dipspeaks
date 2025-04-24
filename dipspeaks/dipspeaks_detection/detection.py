@@ -13,7 +13,6 @@ import pandas as pd
 
 # Plotting and visualization
 
-from matplotlib.pyplot import cm
 
 # SciPy for scientific computing
 
@@ -24,20 +23,6 @@ from scipy.signal import (
 
 
 # Scikit-learn for machine learning
-from sklearn import metrics
-from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans, Birch, SpectralClustering
-from sklearn.decomposition import PCA
-from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances
-from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, Normalizer, StandardScaler
-
-# TensorFlow and Keras for deep learning
-import tensorflow as tf
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.layers import Input, Dense
-from tensorflow.keras.models import Model
-from statsmodels.tsa.arima_process import ArmaProcess
 
 # Ignore warnings
 warnings.filterwarnings('ignore')
@@ -60,7 +45,7 @@ def _detection(t, x, sy):
     - minlen: Minimum allowed length for the peak's duration.
 
     Returns:
-    - dips: DataFrame containing detected peak properties including SNR.
+    - DataFrame containing detected peak/dip properties including SNR.
     '''
     # Initialize lists to collect peak properties
     pddip, pdprominence, pdwidth, pdwidth05 = [], [], [], []
@@ -68,7 +53,7 @@ def _detection(t, x, sy):
     pdleft_ips05, pdright_ips05 = [], []
     dispersions = []
 
-    minlen= np.mean(np.diff(t))*5
+    minlen= np.mean(np.diff(t))
 
     # Invert the signal to find dips as peaks
     x_new = x - min(x)
@@ -166,7 +151,8 @@ def _detection(t, x, sy):
     dips['snr'] = peak_snr
 
     # Filter peaks based on duration thresholds
-    #dips = dips[(dips.duration <= maxlen) & (dips.duration >= minlen)]
+    dips = dips[(dips.duration >= minlen)].reset_index(drop=True)
+    dips = dips[(dips.prominence >0)].reset_index(drop=True)
     dips = dips.sort_values(by='t', ascending=False).reset_index(drop=True)
 
     return dips.reset_index(drop=True)

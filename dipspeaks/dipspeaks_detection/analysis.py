@@ -1,78 +1,55 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+from IPython.display import display
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics import silhouette_score
 
 from .evaluation import(
-    _modified_z_score,
-    _outlier_probability,
+
     _real_probability,
 )
 
-def overlap(high_start, high_end, low_start, low_end):
+from .helper_functions import(
+    scale
+)
+
+def overlap(high, low):
     """
-    Compute pairwise overlap durations and overlap ratios between two sets of intervals.
-
-    For each interval in the ‘high’ list and each in the ‘low’ list, this function
-    calculates the overlap length and returns only those pairs that actually overlap.
-
-    Parameters
+    Compute pairwise overlap durations and overlap ratios between two sets features (dips or peaks).
+    Useful to analyze the behaviour of the dips/peaks and their presence in different energy ranges.
+        
+        Parameters
     ----------
-    high_start : array_like of shape (N,)
-        Start times of the high-interval segments.
-    high_end : array_like of shape (N,)
-        End times of the high-interval segments.
-    low_start : array_like of shape (M,)
-        Start times of the low-interval segments.
-    low_end : array_like of shape (M,)
-        End times of the low-interval segments.
+    high : pandas.DataFrame
+        DataFrame of “high-energy” features (peaks/dips). Must contain columns:
+        - **ti** : start time of each feature (array-like of shape (n_high,))
+        - **te** : end time of each feature (array-like of shape (n_high,))
+    low : pandas.DataFrame
+        DataFrame of “low-energy” features. Must contain columns:
+        - **ti** : start time of each feature (array-like of shape (n_low,))
+        - **te** : end time of each feature (array-like of shape (n_low,))
 
     Returns
     -------
-    overlap : ndarray of shape (K,)
-        Overlap duration for each overlapping high–low interval pair.
-    high_indices : ndarray of shape (K,)
-        Indices into `high_start`/`high_end` corresponding to each overlap.
-    low_indices : ndarray of shape (K,)
-        Indices into `low_start`/`low_end` corresponding to each overlap.
-    hoverlap : ndarray of shape (K,)
-        Fraction of each high interval that overlaps:
-        `overlap / (high_end - high_start)`.
-    loverlap : ndarray of shape (K,)
-        Fraction of each low interval that overlaps:
-        `overlap / (low_end - low_start)`.
+    overlap_durations : numpy.ndarray, shape (n_overlaps,)
+        Duration of each overlapping interval (zero-length overlaps dropped).
+    high_indices : numpy.ndarray, shape (n_overlaps,)
+        Indices into `high` indicating which high-energy feature is involved.
+    low_indices : numpy.ndarray, shape (n_overlaps,)
+        Indices into `low` indicating which low-energy feature is involved.
+    high_overlap_ratio : numpy.ndarray, shape (n_overlaps,)
+        Overlap durations normalized by the duration of the corresponding high-energy feature:
+        $$\frac{\text{overlap}}{\text{high.te} - \text{high.ti}}.$$
+    low_overlap_ratio : numpy.ndarray, shape (n_overlaps,)
+        Overlap durations normalized by the duration of the corresponding low-energy feature:
+        $$\frac{\text{overlap}}{\text{low.te} - \text{low.ti}}.$$
 
-    Notes
-    -----
-    - Any pair with zero or negative overlap is discarded.
-    - All inputs are converted to NumPy arrays internally.
-    - The returned arrays are flattened so that each entry corresponds
-      to one overlapping pair.
-
-    Examples
-    --------
-    >>> high_s = [0, 5]
-    >>> high_e = [3, 8]
-    >>> low_s = [1, 6]
-    >>> low_e = [4, 10]
-    >>> overlap, hi_idx, lo_idx, h_ratio, l_ratio = calculate_overlap_gtp(high_s, high_e, low_s, low_e)
-    >>> overlap
-    array([2, 2])
-    >>> hi_idx
-    array([0, 1])
-    >>> lo_idx
-    array([0, 1])
-    >>> h_ratio
-    array([2/3, 2/3])
-    >>> l_ratio
-    array([2/3, 2/4])
     """
-    high_start = np.array(high_start)
-    high_end = np.array(high_end)
-    low_start = np.array(low_start)
-    low_end = np.array(low_end)
+    high_start = np.array(high.ti)
+    high_end = np.array(high.te)
+    low_start = np.array(low.ti)
+    low_end = np.array(low.te)
 
     # Compute the pairwise maximum of start times and minimum of end times
     max_start = np.maximum(high_start[:, np.newaxis], low_start)
@@ -102,7 +79,7 @@ def filter_dip_peak(
     dataset: pd.DataFrame,
     simdataset: pd.DataFrame,
     lc_reb: object,
-    error_percentile_threshold: float = 0.9,
+    error_percentile_threshold: float = 0.99,
     zscore_threshold: float = 4,
     show_plot: bool = True
 ) -> pd.DataFrame:
@@ -133,27 +110,23 @@ def filter_dip_peak(
         If True, overplot the filtered features on the light curve.
         Default is True.
 
+
     Returns
     -------
     pd.DataFrame
         Subset of `dataset` passing both thresholds, with index reset.
 
-    Side Effects
-    ------------
-    - If `show_plot`, displays a time‑series plot with detected features.
-    - Prints the estimated probability that a detection is real,
-      computed by `_real_probability(real_rate, sim_rate)`.
-
-    Notes
-    -----
-    - `real_rate` and `sim_rate` are each defined as max(t) − min(t).
-    - The helper function `_real_probability` should accept these two durations
-      and return a float in [0, 1].
+    Prints the probability of the dataset based on the rate (features/s) in the filtered light curve vs the rate of the filtered sysntetic light curve.
     """
     # Select features above both thresholds
     filt = dataset[
         (dataset.error_percentile >= error_percentile_threshold) &
         (dataset.zscores >= zscore_threshold)
+    ].reset_index(drop=True)
+
+    sfilt = simdataset[
+        (simdataset.error_percentile >= error_percentile_threshold) &
+        (simdataset.zscores >= zscore_threshold)
     ].reset_index(drop=True)
 
     if show_plot:
@@ -174,18 +147,19 @@ def filter_dip_peak(
         plt.show()
 
     # Compute observation durations
-    real_rate = len(dataset)/(dataset['t'].max() - dataset['t'].min())
-    sim_rate  = len(simdataset)/(simdataset['t'].max() - simdataset['t'].min())
+    real_rate = len(filt)/(dataset['t'].max() - dataset['t'].min())
+    sim_rate  = len(sfilt)/(simdataset['t'].max() - simdataset['t'].min())
 
     # Estimate probability
     p = _real_probability(real_rate, sim_rate)
-    print(f"The probability of this filtered dataset being real is {p:.4f}")
+
+    print(f"The probability of this filtered dataset is {p:.4f}")
 
     return filt
 
 
 
-def gmm_dips_peaks(good_pd, log_scale=False):
+def gmm_dips_peaks(good_pd, lc, log_scale=False, show_plot=False):
     """
     Perform Gaussian Mixture Model (GMM) clustering on the provided data 
     and compute cluster statistics.
@@ -205,7 +179,7 @@ def gmm_dips_peaks(good_pd, log_scale=False):
         return pd.DataFrame(), np.array([])  # Return empty DataFrame and empty array
 
     # Select columns for clustering
-    selected_columns = ['relprominence', 'duration']
+    selected_columns = ['prominence', 'duration']
     data = good_pd[selected_columns]
     data_plot = good_pd[selected_columns]
 
@@ -243,40 +217,15 @@ def gmm_dips_peaks(good_pd, log_scale=False):
     # Determine optimal number of clusters
     optimal_clusters = np.argmax(silhouette_scores) + 2  # Adjust for k_range starting from 2
     
-    
-    #optimal_clusters =2
     # Fit GMM with the optimal number of clusters
     gmm = GaussianMixture(n_components=optimal_clusters, n_init=10, random_state=0)
     gmm.fit(normalized_data)
     cluster_labels = gmm.predict(normalized_data)
 
-    # Plotting the Silhouette scores and clustering results
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-
-    # Subplot 1: Silhouette scores
-    axes[0].plot(k_range, silhouette_scores, marker='.', linestyle='-')
-    axes[0].set_xlabel('Number of Components (k)')
-    axes[0].set_ylabel('Silhouette Score')
-    axes[0].set_title('Silhouette Score', fontsize=10)
-
-    # Subplot 2: Data points with clusters
-    scatter = axes[1].scatter(data_plot['duration'], data_plot['prominence'], c=cluster_labels, marker=".", cmap='rainbow', alpha=0.7)
-    axes[1].set_xlabel('Duration')
-    axes[1].set_ylabel('Prominence')
-    axes[1].set_title('Clustering', fontsize=10)
-
-    if log_scale:
-        axes[1].set_xscale("log")
-        axes[1].set_yscale("log")
-
-    plt.colorbar(scatter, ax=axes[1], label='Cluster Label')
-
-    plt.tight_layout()
-    plt.show()
-
+    
     # Calculate statistics for each cluster
     cluster_stats = []
-    optimal_clusters=2
+    optimal_clusters=optimal_clusters
     if log_scale:
         data = np.exp(data)  # Reverse the log transformation for correct statistics
     for i in range(optimal_clusters):
@@ -293,8 +242,6 @@ def gmm_dips_peaks(good_pd, log_scale=False):
 
     # Create a DataFrame with the results
     cluster_stats_df = pd.DataFrame(cluster_stats)
-
-    # Split mean and std columns into separate columns for better readability
     mean_df = cluster_stats_df['Mean'].apply(pd.Series)
     std_df = cluster_stats_df['Standard Deviation'].apply(pd.Series)
     mean_df.columns = [f'Mean_{col}' for col in mean_df.columns]
@@ -303,4 +250,127 @@ def gmm_dips_peaks(good_pd, log_scale=False):
     # Concatenate mean and std columns with the cluster_stats_df
     cluster_stats_df = pd.concat([cluster_stats_df[['Cluster', 'Number']], mean_df, std_df], axis=1)
 
+    if show_plot:
+        # Plotting the Silhouette scores and clustering results
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    
+        axes[0].plot(k_range, silhouette_scores, marker='.', linestyle='-')
+        axes[0].set_xlabel('Number of Components (k)')
+        axes[0].set_ylabel('Silhouette Score')
+        axes[0].set_title('Silhouette Score', fontsize=10)
+        
+        scatter = axes[1].scatter(data_plot['duration'], data_plot['prominence'], c=cluster_labels, marker=".", cmap='rainbow', alpha=0.7)
+        axes[1].set_xlabel('Duration')
+        axes[1].set_ylabel('Prominence')
+        axes[1].set_title('Clustering', fontsize=10)
+        plt.show
+        
+        if log_scale:
+            axes[1].set_xscale("log")
+            axes[1].set_yscale("log")
+            
+        #Plot lightcurve and different clusters
+        plt.figure(figsize=(11, 3))
+        plt.plot(lc.t, lc.c,"k",alpha=1)
+        plt.scatter(good_pd['t'], lc.c[good_pd['pos']], c=cluster_labels, marker="o", cmap='rainbow', alpha=0.7)
+        plt.tight_layout()
+        plt.show()
+        
+        display(np.round(cluster_stats_df,3))
+
     return cluster_stats_df, cluster_labels
+
+
+
+def clump_candidates(high_dips, low_dips, lc, overlap_threshold=0.75, bin_number=100, show_plot=False):
+
+    """
+    Identify clumped dips between high- and low-energy features based on overlap and relative prominence.
+
+    This function finds dip pairs from two energy bands (`high_dips` and `low_dips`) that overlap
+    by at least `overlap_threshold` in both directions and where the low-energy dip has greater
+    relative prominence than the high-energy dip. Optionally, it can display diagnostic histograms
+    of dip times overlaid with the light curve.
+
+    Parameters
+    ----------
+    high_dips : pandas.DataFrame
+        DataFrame of high-energy dip features. Must contain columns:
+        - `ti`, `te`: start and end times of each dip
+        - `relprominence`: relative prominence of each dip
+        - `t`: representative time of the dip (for plotting)
+    low_dips : pandas.DataFrame
+        DataFrame of low-energy dip features with the same columns as `high_dips`.
+    lc : pandas.DataFrame
+        Light curve DataFrame used for context in plotting. Must contain:
+        - `t`: time array
+        - `c`: count (flux) array
+    overlap_threshold : float, default=0.75
+        Minimum fractional overlap (in both high→low and low→high) required to consider two dips overlapping.
+    bin_number : int, default=100
+        Number of bins to use when plotting histograms of dip times.
+    show_plot : bool, default=False
+        If True, display histograms of dip times for both energy bands, overlaid with the scaled light curve.
+
+    Returns
+    -------
+    high_clump : pandas.DataFrame
+        Subset of `high_dips` that meet the clump criteria.
+    low_clump : pandas.DataFrame
+        Corresponding subset of `low_dips` that pair with `high_clump`."""
+
+    
+    _, high_dip_idx_, low_dip_idx_, percentaje_high, percentaje_low = overlap(high_dips,  low_dips)
+    
+    high_dip_idx = high_dip_idx_[(percentaje_high>overlap_threshold)&(percentaje_low>overlap_threshold)]
+    low_dip_idx = low_dip_idx_[(percentaje_high>overlap_threshold)&(percentaje_low>overlap_threshold)]
+    
+    high_dips_overlap = high_dips.loc[high_dip_idx].reset_index(drop=True)
+    low_dips_overlap = low_dips.loc[low_dip_idx].reset_index(drop=True)
+
+    clump_index = low_dips_overlap.relprominence/high_dips_overlap.relprominence >1
+    
+    high_clump = high_dips_overlap.loc[clump_index].reset_index(drop=True)
+    low_clump = low_dips_overlap.loc[clump_index].reset_index(drop=True)
+
+
+    if show_plot:
+        plt.figure(figsize=(20, 3)) 
+        
+        hcounts, _,_ = plt.hist(high_dips.t, bins=bin_number, alpha=0.5, label='high energy ')
+        lcounts, _,_ = plt.hist(low_dips.t, bins=bin_number, alpha=0.5, label='low energy')
+
+        max_count= max(max(hcounts), max(lcounts))
+        plt.plot(lc.t, scale(lc.c,[0,max_count]), "k", alpha=0.2)
+
+        plt.legend()
+        plt.show()
+
+    return high_clump, low_clump
+
+
+def overlap_percentaje(high, low, lc, percentaje = 0.5, show_plot=False):
+
+    overlap_duration, high_idx_, low_idx_, percentaje_high, percentaje_low = overlap(high,  low)
+
+    idx = np.where((percentaje_high > percentaje)&(percentaje_low > percentaje))
+
+    high_indices = high_idx_[idx]
+    low_indices = low_idx_[idx]
+
+    if show_plot:
+        plt.figure(figsize=(20, 3)) 
+        plt.plot(lc.t, lc.c, "k", alpha=0.2)
+        plt.vlines(x= high.t[high_indices], ymax=max(lc.c), ymin=min(lc.c), color="red", label="High energy dataset" )
+        plt.vlines(x= low.t[low_indices], ymax=max(lc.c), ymin=min(lc.c) , color="green", label="Low energy dataset" )
+        plt.legend()
+        plt.show()
+
+
+    return (
+        overlap_duration[idx], 
+        high_indices,
+        low_indices,
+        percentaje_high[idx], 
+        percentaje_low[idx]
+    )
