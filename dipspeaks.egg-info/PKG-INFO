@@ -8,6 +8,7 @@ Author-email: graciela.sanjurjo@ua.es
 License: MIT
 Requires-Python: >=3.8
 License-File: LICENSE
+Requires-Dist: ipython>=8
 Requires-Dist: numpy
 Requires-Dist: pandas
 Requires-Dist: scipy
