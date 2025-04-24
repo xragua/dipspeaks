@@ -44,7 +44,7 @@ Detailed documentation, including function references and tutorials, can be foun
 
 ## Contributing
 
-Contributions are welcome! Please check the [CONTRIBUTING FILE](https://github.com/xragua/dipspeaks/issues) for details on how to contribute.
+Contributions are welcome! Please check the [CONTRIBUTING FILE](https://xragua.github.io/dipspeaks/api/contribute.html) for details on how to contribute.
 
 ---
 
