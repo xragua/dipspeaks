@@ -25,7 +25,12 @@ jobs:
       # 3 – install your doc requirements
       - run: |
           pip install -r docs/requirements.txt
-
+          
+      - name: Install pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc           # <-- new
+          
       # 4 – build HTML into ./site
       - run: |
           sphinx-build -b html docs/source site
