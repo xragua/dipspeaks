@@ -1,4 +1,3 @@
-pip install 
 import dipspeaks
 from dipspeaks import *
 
