@@ -16,3 +16,4 @@ dipspeaks/dipspeaks_detection/dipspeaks_detection.py
 dipspeaks/dipspeaks_detection/evaluation.py
 dipspeaks/dipspeaks_detection/helper_functions.py
 dipspeaks/dipspeaks_detection/synthetic_data_for_train.py
+test/test_dipspeaks.py

@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="dipspeaks",
-    version="0.1",
+    version="0.0.01",
     author="LAEX",
     author_email="graciela.sanjurjo@ua.es",
     description="A python package to detect relevant peaks and dips in lightcurves.",
