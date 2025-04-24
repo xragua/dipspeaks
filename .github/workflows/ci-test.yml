@@ -2,43 +2,32 @@ name: Run CI-test
 
 on:
   push:
-    branches:
-      - '**'  # This will trigger on pushes to any branch
+    branches: ["**"]
   pull_request:
-    branches:
-      - '**'  # This will trigger on pull requests to any branch
+    branches: ["**"]
   schedule:
-    # Run every Monday at 6am UTC
-    - cron: '0 6 * * 1'
+    - cron: '0 6 * * 1'      # Mondays at 06:00 UTC
 
 jobs:
   test:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         python-version: ["3.8", "3.10", "3.12"]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
+    - name: Install project + test dependencies
       run: |
-        pip install dipspeaks==0.2
-        pip install --upgrade pip
-        pip install --upgrade dipspeaks
-        pip install pytest
-        pip install pytest-cov
+        python -m pip install --upgrade pip
+        python -m pip install .[test]        # installs dipspeaks from the repo
 
-    - name: Run tests with coverage
+    - name: Run pytest with coverage
       run: |
-        cd tests  # Navigate to the test directory
-        pytest --cov=./ --cov-report=xml  # Generate the coverage report
-
+        pytest --cov=dipspeaks --cov-report=xml tests
 
