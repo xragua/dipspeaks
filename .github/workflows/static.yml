@@ -1,5 +1,6 @@
 name: docs
-
+- run: |
+    pip install sphinx sphinx-rtd-theme nbsphinx myst-nb .
 on:
   push:
     branches: [main]
