@@ -49,3 +49,9 @@ You can install the package directly from PyPI:
    :caption: Functions:
    
    api/function_reference
+   
+.. toctree::
+   :maxdepth: 1
+   :caption: Contribute:
+   
+   api/contribute
