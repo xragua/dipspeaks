@@ -29,5 +29,5 @@ jobs:
 
     - name: Run pytest with coverage
       run: |
-        pytest --cov=dipspeaks --cov-report=xml tests
+        pytest tests
 
