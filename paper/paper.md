@@ -4,7 +4,7 @@ tags:
   - Python
   - X-ray astronomy
   - Timing analysis
-  -light curves
+  - light curves
 authors:
   - given-names: Graciela
     surname: Sanjurjo-Ferrín
