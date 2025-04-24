@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from IPython.display import display
+
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics import silhouette_score
 
@@ -276,7 +276,6 @@ def gmm_dips_peaks(good_pd, lc, log_scale=False, show_plot=False):
         plt.tight_layout()
         plt.show()
         
-        display(np.round(cluster_stats_df,3))
 
     return cluster_stats_df, cluster_labels
 
