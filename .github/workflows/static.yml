@@ -14,32 +14,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1 – check out your repo
       - uses: actions/checkout@v4
-
-      # 2 – set up Python
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+        with: { python-version: "3.11" }
 
-      # 3 – install your doc requirements
-      - run: |
-          pip install -r docs/requirements.txt
-          
-      - name: Install pandoc
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pandoc           # <-- new
-          
-      # 4 – build HTML into ./site
-      - run: |
-          sphinx-build -b html docs/source site
+      - run: pip install -r docs/requirements.txt
+      - run: sudo apt-get update && sudo apt-get install -y pandoc
 
-      # 5 – upload as artifact
+      - run: sphinx-build -b html docs/source site
+
+      # upload *once*
       - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
+        with: { path: site }
 
-      # 6 – deploy to GitHub Pages
       - uses: actions/deploy-pages@v4
-
