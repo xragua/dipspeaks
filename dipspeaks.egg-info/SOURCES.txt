@@ -1,3 +1,4 @@
+LICENSE
 README.md
 setup.py
 dipspeaks/__init__.py

@@ -33,6 +33,9 @@ The following Python libraries are required:
 -- pytest>=6.0
 
 
+## Installation
+The package can be installed via pip:
+pip install dipspeaks==0.1
 
 ---
 
