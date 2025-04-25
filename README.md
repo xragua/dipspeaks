@@ -37,7 +37,7 @@ The following Python libraries are required:
 
 ## Installation
 The package can be installed via pip:
-pip install dipspeaks==0.1
+pip install dipspeaks
 
 ---
 
