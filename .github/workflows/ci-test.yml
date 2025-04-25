@@ -40,7 +40,4 @@ jobs:
         cd tests  
                 pytest --cov=./ --cov-report=xml  # Generate the coverage report
 
-    - name: Upload coverage reports to Codecov
-        uses:codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+
