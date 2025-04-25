@@ -1,3 +1,4 @@
+![Codecov](https://img.shields.io/codecov/c/github/xragua/dipspeaks)
 [![Docs](https://img.shields.io/badge/docs-gh--pages-brightgreen)](https://xragua.github.io/dipspeaks/)
 
 
