@@ -1,4 +1,5 @@
-![Codecov](https://img.shields.io/codecov/c/github/xragua/dipspeaks)
+[![Codecov](https://img.shields.io/codecov/c/github/xragua/dipspeaks)
+
 [![Docs](https://img.shields.io/badge/docs-gh--pages-brightgreen)](https://xragua.github.io/dipspeaks/)
 
 [![status](https://joss.theoj.org/papers/e6451a8812a33b684bca7ad456ea95a1/status.svg)](https://joss.theoj.org/papers/e6451a8812a33b684bca7ad456ea95a1)
