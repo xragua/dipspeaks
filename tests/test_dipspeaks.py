@@ -30,7 +30,7 @@ def test_pipeline_runs_without_error(tmp_path):
 
 def test_gmm_clustering_returns_labels():
     df = make_dummy_lc()
-    low, high, reb, *_ = detect_dips_and_peaks(df, show_plot=False)
+    low, high, reb,_,_ = detect_dips_and_peaks(df, show_plot=False)
 
     high = filter_dip_peak(high, high, reb, show_plot=False)
     low  = filter_dip_peak(low,  low,  reb, show_plot=False)
