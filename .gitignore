@@ -1,1 +1,30 @@
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints
+
+# Ignore build artifacts
+build/
+*.egg-info/
+conf.py
+dist/
+index.rst
+make.bat
+Makefile
+#my-project/site
+
+# Ignore macOS system files
 .DS_Store
+
+# Ignore IDE and editor settings
+.vscode/
+.idea/
+
+# Ignore temporary files and logs
+*.log
+tmp/
+temp/
+.ipynb_checkpoints/
+*checkpoints*
+
