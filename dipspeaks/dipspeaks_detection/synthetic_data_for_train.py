@@ -1,11 +1,5 @@
-#PKGS
+ ##########################################################################################
 ##########################################################################################
-##########################################################################################
-##########################################################################################
-# Import Libraries
-# Standard libraries
-import warnings
-
 # Data manipulation and analysis
 import numpy as np
 import random
@@ -18,9 +12,6 @@ warnings.filterwarnings('ignore')
 warnings.filterwarnings('ignore', category=RuntimeWarning)
 warnings.filterwarnings('ignore', message='divide by zero encountered in divide')
 
-##########################################################################################
-##########################################################################################
-##########################################################################################
 def _calculate_synthetic_data(t, c, sc, num_simulations, *, seed=None,
                               cutoff_s=5000,
                               butter_order=1):
@@ -103,7 +94,7 @@ def _calculate_synthetic_data(t, c, sc, num_simulations, *, seed=None,
         resid[outlier_mask] = replace_vals
 
     # --- Normalize errors ----------------------------------------------
-    sc_prop = np.divide(sc, c, out=np.zeros_like(c), where=c != 0)
+    sc_prop = np.divide(sc, c, out = np.zeros_like(c), where=c != 0)
     
     # --- Generate simulations ------------------------------------------
 
@@ -118,35 +109,45 @@ def _calculate_synthetic_data(t, c, sc, num_simulations, *, seed=None,
     mean_diff_t = np.mean(np.diff(t))
 
     base_time = t[0]
+    
+    mixed_diffs    = np.concatenate([[mean_diff_t], np.diff(t)])
 
+    # --- Z-score filtering to remove outliers in residuals ------------
+    z_dt = (mixed_diffs - np.mean(mixed_diffs)) / (np.std(mixed_diffs) + 1e-10)
+    outlier_mask = np.abs(z_dt) > 3
+    safe_mask    = np.abs(z_dt) < 1
+
+    if np.any(outlier_mask) and np.any(safe_mask):
+        safe_vals = mixed_diffs[safe_mask]
+        replace_vals = rng.choice(safe_vals, size=outlier_mask.sum(), replace=True)
+        mixed_diffs[outlier_mask] = replace_vals
+
+    # --- Normalize errors ----------------------------------------------
+    
     for k in range(num_simulations):
+        
         perm = rng.permutation(n)
+        
         start = k * n
         end   = start + n
 
         # shuffle your diffs
-        mixed_diffs    = np.concatenate([[mean_diff_t], np.diff(t)])
+        
         shuffled_diffs = mixed_diffs[perm]
 
         # fill the k-th block
-        tsim[start]       = base_time + k * duration
+        if max(tsim) > 1:
+            tsim[start]  = max(tsim)+np.mean(np.diff(t))
+            
+        if max(tsim) < 1:
+            tsim[start]  = min(t)
+            
         tsim[start:end]   = tsim[start] + np.cumsum(shuffled_diffs)
+        
         simc[start:end]   = resid[perm] + np.mean(c)
         ssimc[start:end]  = abs(sc_prop[perm] * simc[start:end])
-
-        # --- Z‑score filtering on ssimc to remove outliers ----------------
-        z_ssimc = (ssimc - np.mean(ssimc)) / (np.std(ssimc) + 1e-10)
-        outlier_mask = np.abs(z_ssimc) > 3
-        safe_mask    = np.abs(z_ssimc) < 1
-
-        if np.any(outlier_mask) and np.any(safe_mask):
-            # sample replacement values from the “safe” pool
-            safe_vals = ssimc[safe_mask]
-            replace_vals = rng.choice(safe_vals,
-                                    size=outlier_mask.sum(),
-                                    replace=True)
-            ssimc[outlier_mask] = replace_vals
         
     
     # --- Output flattened ---------------------------------------------
     return tsim, simc, ssimc
+    
