@@ -75,58 +75,87 @@ def overlap(high, low):
 
 
 
+
 def filter_dip_peak(
-    dataset: pd.DataFrame,
-    simdataset: pd.DataFrame,
-    lc_reb: object,
-    error_percentile_threshold: float = 0.99,
-    zscore_threshold: float = 4,
-    show_plot: bool = True
-) -> pd.DataFrame:
+    dataset,
+    simdataset,
+    lc_reb,
+    error_percentile_threshold = 0.99,
+    zscore_threshold = 2,
+    min_duration_threshold = 0,
+    max_duration_threshold = 5000,
+    relprominence_threshold = 0.0,
+    show_plot = True,
+):
     """
-    Filter detected dips/peaks by reconstruction‑error percentile and z‑score,
-    optionally plot them, and estimate their “real” probability.
+    Select significant dips/peaks from a real light-curve, compare them to
+    those found in a synthetic (noise-only) curve, and optionally visualise
+    the result.
 
     Parameters
     ----------
     dataset : pd.DataFrame
-        Detected features on the real light curve. Must contain columns:
-        - `error_percentile` (float): percentile ranking of the reconstruction error.
-        - `zscores` (float): z‑score of the feature.
-        - `pos` (int): index into `lc_reb.t` / `lc_reb.c` for plotting.
-        - `t` (float): time coordinate for rate calculation.
-    simdataset : pd.DataFrame
-        Detected features on a noise‑only (synthetic) light curve. Must contain `t`.
-    lc_reb : object
-        Re-binned light curve object with attributes:
-        - `t` (array‑like): time stamps.
-        - `c` (array‑like): measured flux/rate.
-    error_percentile_threshold : float, optional
-        Minimum error‑percentile (e.g. 0.9 means above the 90th percentile)
-        to keep a feature. Default is 0.9.
-    zscore_threshold : float, optional
-        Minimum z‑score to keep a feature. Default is 4.
-    show_plot : bool, optional
-        If True, overplot the filtered features on the light curve.
-        Default is True.
+        Detected features on the *real* light curve. Must contain at least  
+        the columns::
 
+            error_percentile  – percentile rank of reconstruction error  
+            zscores           – z-score of the feature  
+            pos               – (optional) index into ``lc_reb.t``/``lc_reb.c``  
+            t                 – time of the feature  
+
+        If you intend to filter on duration or relative prominence the table
+        must also include::
+
+            duration, relprominence
+    simdataset : pd.DataFrame
+        Detected features on a *synthetic* (noise-only) curve. Needs the same
+        metric columns that are being thresholded **and** a ``t`` column so
+        that its observation window can be measured.
+    lc_reb : object
+        Re-binned light-curve container with attributes
+
+        * ``t`` – array-like of time stamps  
+        * ``c`` – array-like of flux / rate values
+    error_percentile_threshold : float, default 0.99
+        Minimum reconstruction-error percentile a feature must exceed
+        (e.g. 0.99 keeps the top 1 % highest-error events).
+    zscore_threshold : float, default 4.0
+        Minimum absolute z-score required.
+    min_duration_threshold, max_duration_threshold : float or None, optional
+        Lower/upper bounds for the event *duration*.
+        If ``None`` the bound is not applied.
+    relprominence_threshold : float or None, optional
+        Minimum *relative* prominence of the feature.
+        Ignored when ``None``.
+    show_plot : bool, default True
+        If ``True`` plot the light curve with the surviving events highlighted.
 
     Returns
     -------
     pd.DataFrame
-        Subset of `dataset` passing both thresholds, with index reset.
+        Subset of ``dataset`` that passes **all** active thresholds, with the
+        index reset.
 
-    Prints the probability of the dataset based on the rate (features/s) in the filtered light curve vs the rate of the filtered sysntetic light curve.
+    Notes
+    -----
+    The statistical comparison between real and synthetic rates, and the
+    plotting/visualisation logic, still need to be implemented.
     """
     # Select features above both thresholds
     filt = dataset[
         (dataset.error_percentile >= error_percentile_threshold) &
-        (dataset.zscores >= zscore_threshold)
+        (dataset.zscores >= zscore_threshold)&
+        (dataset.duration <= max_duration_threshold)&
+        (dataset.duration >= min_duration_threshold)&
+        (dataset.relprominence>= relprominence_threshold)
     ].reset_index(drop=True)
 
     sfilt = simdataset[
         (simdataset.error_percentile >= error_percentile_threshold) &
-        (simdataset.zscores >= zscore_threshold)
+        (simdataset.zscores >= zscore_threshold)&
+        (simdataset.duration <= max_duration_threshold)&
+        (simdataset.duration >= min_duration_threshold)&
+        (simdataset.relprominence>= relprominence_threshold)
     ].reset_index(drop=True)
 
     if show_plot:
@@ -159,7 +188,7 @@ def filter_dip_peak(
 
 
 
-def gmm_dips_peaks(good_pd, lc, log_scale=False, show_plot=False):
+def gmm_dips_peaks(good_pd, lc, threshold_sscore=0.5, number_clusters=None, log_scale=False, show_plot=False):
     """
     Perform Gaussian Mixture Model (GMM) clustering on the provided data 
     and compute cluster statistics.
@@ -217,6 +246,12 @@ def gmm_dips_peaks(good_pd, lc, log_scale=False, show_plot=False):
     # Determine optimal number of clusters
     optimal_clusters = np.argmax(silhouette_scores) + 2  # Adjust for k_range starting from 2
     
+    if number_clusters:
+        optimal_clusters=number_clusters
+
+    if (not number_clusters) & (max(silhouette_scores)<threshold_sscore):
+        print("The fit is not good enough")
+        optimal_clusters=1
     # Fit GMM with the optimal number of clusters
     gmm = GaussianMixture(n_components=optimal_clusters, n_init=10, random_state=0)
     gmm.fit(normalized_data)
@@ -281,7 +316,7 @@ def gmm_dips_peaks(good_pd, lc, log_scale=False, show_plot=False):
 
 
 
-def clump_candidates(high_dips, low_dips, lc, overlap_threshold=0.75, bin_number=100, show_plot=False):
+def clump_candidates(high_dips, low_dips, lc, overlap_threshold=0.75, ratio_threshold=1, bin_number=100, show_plot=False):
 
     """
     Identify clumped dips between high- and low-energy features based on overlap and relative prominence.
@@ -327,7 +362,7 @@ def clump_candidates(high_dips, low_dips, lc, overlap_threshold=0.75, bin_number
     high_dips_overlap = high_dips.loc[high_dip_idx].reset_index(drop=True)
     low_dips_overlap = low_dips.loc[low_dip_idx].reset_index(drop=True)
 
-    clump_index = low_dips_overlap.relprominence/high_dips_overlap.relprominence >1
+    clump_index = low_dips_overlap.relprominence/high_dips_overlap.relprominence > ratio_threshold
     
     high_clump = high_dips_overlap.loc[clump_index].reset_index(drop=True)
     low_clump = low_dips_overlap.loc[clump_index].reset_index(drop=True)
@@ -336,10 +371,12 @@ def clump_candidates(high_dips, low_dips, lc, overlap_threshold=0.75, bin_number
     if show_plot:
         plt.figure(figsize=(20, 3)) 
         
-        hcounts, _,_ = plt.hist(high_dips.t, bins=bin_number, alpha=0.5, label='high energy ')
-        lcounts, _,_ = plt.hist(low_dips.t, bins=bin_number, alpha=0.5, label='low energy')
+        hcounts, _,_ = plt.hist(high_clump.t, bins=bin_number, alpha=0.5, label='high energy ')
+        lcounts, _,_ = plt.hist(low_clump.t, bins=bin_number, alpha=0.5, label='low energy')
 
         max_count= max(max(hcounts), max(lcounts))
+        if max_count==0:
+            max_count=1
         plt.plot(lc.t, scale(lc.c,[0,max_count]), "k", alpha=0.2)
 
         plt.legend()
